@@ -265,8 +265,12 @@ class GameAudio {
     this.tone(midi(PENTATONIC[this.popIndex] + 12), t, 0.16, 'triangle', 0.12, this.sfxBus!);
   }
 
+  /**
+   * Sounds asked for while the context is still waking up are queued and play
+   * the moment it starts, so the very first tap is not silent.
+   */
   private ready(): boolean {
-    return !!this.ctx && !!this.sfxBus && this.ctx.state === 'running';
+    return !!this.ctx && !!this.sfxBus && this.ctx.state !== 'closed' && !document.hidden;
   }
 
   sfx(name: 'tap' | 'tab' | 'select' | 'remove' | 'sparkle' | 'whoosh' | 'fanfare' | 'applause' | 'shutter' | 'cheer' | 'drumroll' | 'magic' | 'pet'): void {

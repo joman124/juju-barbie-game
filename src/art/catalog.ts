@@ -1,4 +1,4 @@
-import type { Look, WearItem } from '../types';
+import type { WearItem } from '../types';
 import { BOTTOMS, DRESSES, SHOES, TOPS } from './clothes';
 import { BLING_ACC, CARRY_ACC, HEAD_ACC } from './accessories';
 import { composeDoll, MANNEQUIN } from './doll';
@@ -23,30 +23,5 @@ export function itemThumb(item: WearItem): string {
     hideLegs: !!item.tail,
     hideHead: !(item.slot === 'accHead' || item.slot === 'accFace'),
   });
-  const headBlank =
-    item.slot === 'accHead' || item.slot === 'accFace'
-      ? ''
-      : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="xMidYMid meet">${headBlank}${inner}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="xMidYMid meet">${inner}</svg>`;
 }
-
-/** Which look fields each wardrobe slot can live in alongside. */
-export const OPTIONAL_SLOTS: Array<keyof Look> = [
-  'top',
-  'bottom',
-  'dress',
-  'shoes',
-  'accHead',
-  'accNeck',
-  'accFace',
-  'accHandL',
-  'accHandR',
-  'accBack',
-  'lips',
-  'shadow',
-  'blush',
-  'faceArt',
-  'nailColor',
-  'nailPattern',
-  'pet',
-];

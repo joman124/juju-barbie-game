@@ -388,5 +388,3 @@ export function sceneLayers(theme: Theme, uid: string): string {
     layer('scene-crowd crowd-b', b)
   );
 }
-
-export const themeAccent = (theme: Theme) => STYLES[theme].light2;

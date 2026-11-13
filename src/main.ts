@@ -30,6 +30,9 @@ routes.lookbook = () => go(lookbookScreen());
 
 routes.title();
 
+// Lets the test scripts jump straight to any screen while developing.
+if (import.meta.env.DEV) (window as unknown as { __routes: typeof routes }).__routes = routes;
+
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => undefined);

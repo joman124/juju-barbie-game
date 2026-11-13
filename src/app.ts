@@ -151,6 +151,8 @@ export function initApp(root: HTMLElement): void {
   hintEl = html(`<div class="hint-hand" aria-hidden="true">${ICONS.hand}</div>`);
   document.body.appendChild(hintEl);
 
+  // Safari only lets sound start from certain touch events, so try on each of them.
+  for (const type of ['pointerup', 'touchend', 'click']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
   root.addEventListener('pointerdown', onDown);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onCancel);

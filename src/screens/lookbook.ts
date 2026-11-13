@@ -45,7 +45,7 @@ export function lookbookScreen(): Screen {
             ${btn('close', ICONS.close, 'btn-mid btn-blue', '', 'Close')}
           </div>
           <button type="button" class="grown-lock" aria-label="Grown-ups: press and hold">
-            <span class="lock-ring"></span>${ICONS.lock}
+            <svg class="lock-ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>${ICONS.lock}
           </button>
         </div>
         <div class="grown">
@@ -171,7 +171,7 @@ export function lookbookScreen(): Screen {
       },
       mute: muteAction,
     },
-    hintTarget: () => (looks.length === 0 ? root.querySelector('.book-empty .btn-play') : null),
+    hintTarget: () => (open ? root.querySelector('.detail-bar .btn-show') : root.querySelector(looks.length === 0 ? '.book-empty .btn-play' : '.look-card')),
     onShow: () => audio.music('studio'),
     onHide: cancelHold,
   };

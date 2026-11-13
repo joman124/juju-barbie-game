@@ -240,6 +240,10 @@ svg {
   height: 100%;
   overflow: visible;
 }
+/* Every moving part is wrapped so that (0, 0) is its joint. */
+.doll-svg g {
+  transform-origin: 0 0;
+}
 .doll-svg .blink {
   animation: blink 4.4s infinite;
 }
@@ -738,7 +742,7 @@ svg {
  * ------------------------------------------------------------------ */
 .studio {
   display: grid;
-  grid-template-columns: minmax(0, 43fr) minmax(0, 57fr);
+  grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
   background: linear-gradient(150deg, #ffe6f4, #e8dbff);
 }
 .stage {
@@ -797,7 +801,9 @@ svg {
   transition: opacity 0.3s ease;
 }
 .pet-wrap.floats {
-  bottom: 44%;
+  right: -2%;
+  width: 26%;
+  bottom: 46%;
   animation: pet-float 3s ease-in-out infinite;
 }
 .pet-wrap.react {
@@ -1002,7 +1008,8 @@ svg {
     bottom: 0;
   }
   .pet-wrap {
-    right: 6%;
+    right: auto;
+    left: 5%;
     bottom: 3%;
     width: 22%;
   }
@@ -1433,31 +1440,32 @@ svg {
 }
 .lock-ring {
   position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  background: conic-gradient(#fff var(--p, 0%), rgba(255, 255, 255, 0) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  inset: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  transform: rotate(-90deg);
   opacity: 0;
 }
-@property --p {
-  syntax: '<percentage>';
-  inherits: false;
-  initial-value: 0%;
+.lock-ring circle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
 }
 .grown-lock.holding .lock-ring {
   opacity: 1;
+}
+.grown-lock.holding .lock-ring circle {
   animation: hold 3s linear forwards;
 }
 .grown-lock.holding {
   background: rgba(90, 40, 140, 0.85);
 }
 @keyframes hold {
-  from {
-    --p: 0%;
-  }
   to {
-    --p: 100%;
+    stroke-dashoffset: 0;
   }
 }
 .grown {
