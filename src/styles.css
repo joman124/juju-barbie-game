@@ -1213,6 +1213,12 @@ svg {
     width: calc(var(--tap) * 1.2);
     height: calc(var(--tap) * 1.2);
   }
+  .pet-wrap.floats {
+    right: auto;
+    left: 4%;
+    bottom: 10%;
+    width: 20%;
+  }
   /* three buttons do not fit down one side, so "start again" sits on the left under the back button */
   .stage-bar .btn-reset {
     position: absolute;
