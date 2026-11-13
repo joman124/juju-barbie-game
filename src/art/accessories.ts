@@ -260,7 +260,7 @@ export const CARRY_ACC: WearItem[] = [
   {
     id: 'hl-balloon',
     slot: 'accHandL',
-    thumb: [20, 140, 170, 300],
+    thumb: [26, 142, 136, 136],
     parts: () => ({
       hand:
         `<path d="M128 420 Q96 360 104 300 Q108 276 96 252" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>

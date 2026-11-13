@@ -131,14 +131,13 @@ export const PETS: Pet[] = [
         ears: 'horse',
         tail: 'none',
         nose: '#ff8ec7',
-        behind: `<path d="M140 150 Q190 150 180 186 Q168 176 160 186 Q156 170 144 176 Z" fill="#a57bff"/><path d="M146 156 Q178 158 174 178" fill="none" stroke="#4db8ff" stroke-width="6" stroke-linecap="round"/>`,
+        behind: RAINBOW.slice(0, 5)
+          .map((c, i) => `<circle cx="${46 - i * 2}" cy="${56 + i * 17}" r="15" fill="${c}"/>`)
+          .join('') + `<path d="M140 150 Q190 150 180 186 Q168 176 160 186 Q156 170 144 176 Z" fill="#a57bff"/><path d="M146 156 Q178 158 174 178" fill="none" stroke="#4db8ff" stroke-width="6" stroke-linecap="round"/>`,
         extra:
           `<path d="M100 -2 L88 38 L112 38 Z" fill="#ffd84a" stroke="#f0a81c" stroke-width="2.5" stroke-linejoin="round"/>
            <path d="M94 26 L108 20 M96 14 L105 10" stroke="#f0a81c" stroke-width="2.5" stroke-linecap="round"/>` +
-          RAINBOW.slice(0, 5)
-            .map((c, i) => `<circle cx="${52 + i * 5}" cy="${52 + i * 15}" r="13" fill="${c}"/>`)
-            .join('') +
-          `<circle cx="78" cy="42" r="13" fill="#ff5d73"/><circle cx="96" cy="40" r="11" fill="#ff9f43"/>` +
+          `<circle cx="84" cy="42" r="13" fill="#ff5d73"/><circle cx="102" cy="40" r="11" fill="#ff9f43"/><circle cx="118" cy="44" r="9" fill="#ffd84a"/>` +
           sparkle(150, 60, 7, '#ffd84a'),
       }),
   },

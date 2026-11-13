@@ -85,7 +85,7 @@ export function composeDoll(o: ComposeOpts): string {
               (o.nails ?? '')
             : '') +
             join(L, 'armFore') +
-            held,
+            (held ? pivot(130, 421, 'held', held) : ''),
         ) +
         join(L, 'armUpper'),
     );

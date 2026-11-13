@@ -31,4 +31,11 @@ if (what === 'dolls') {
       lips: 'lip-red', shadow: 'sh-purple', blush: 'bl-pink', faceArt: i % 2 ? 'fa-stars' : 'fa-hearts', nailColor: 'n-red' })}</div>`;
   }
 }
+if (what === 'icon') {
+  // App icon artwork; scripts/make-icons.cjs photographs this at each size.
+  const look = { ...DOLLS[2].starter, hair: 'buns', hairColor: 'pink', accHead: 'hd-crown', lips: 'lip-hot', shadow: 'sh-purple', faceArt: 'fa-stars' };
+  html = `<div style="position:fixed;inset:0;background:linear-gradient(160deg,#c9a8ff,#8f6bff 55%,#5f8bff)"></div>
+    <div style="position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.7),rgba(255,255,255,0) 60%)"></div>
+    <svg viewBox="40 -22 320 320" style="position:fixed;left:0;top:6%;width:100vw;height:100vw">${dollSvg(look).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</svg><div>`;
+}
 out.innerHTML = html + '</div>';

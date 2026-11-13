@@ -239,7 +239,7 @@ export const BOTTOMS: WearItem[] = [
     thumb: T_SKIRT,
     parts: () => ({
       hips:
-        `<path d="M150 372 L250 372 L276 462 L124 462 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+        `<path d="M150 372 L250 372 L276 462 L124 462 Z" fill="#fff" stroke="#d6e4f5" stroke-width="3" stroke-linejoin="round"/>
          <path d="M168 380 L152 460 M188 380 L182 462 M212 380 L218 462 M232 380 L248 460" stroke="#d6e4f5" stroke-width="3" stroke-linecap="round"/>
          <path d="M127 446 L273 446" stroke="#18c5c0" stroke-width="8" stroke-linecap="round"/>` + waistband('#18c5c0'),
     }),
