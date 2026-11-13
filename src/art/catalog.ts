@@ -15,6 +15,7 @@ export function itemThumb(item: WearItem): string {
   const p = item.parts({ uid });
   const [x, y, w, h] = item.thumb;
   const inner = composeDoll({
+    uid,
     skin: MANNEQUIN,
     mannequin: true,
     layers: [p],

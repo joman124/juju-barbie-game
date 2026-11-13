@@ -70,7 +70,8 @@ export interface HairColor {
   base: string;
   shade: string;
   light: string;
-  rainbow?: boolean;
+  /** Multi-colour hair (rainbow, ombre): the colours from top to tip. */
+  stops?: string[];
 }
 
 export interface Look {

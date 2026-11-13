@@ -1,15 +1,19 @@
 import type { HairColor } from '../types';
-import { rainbowGradient, scallopCircle } from './svg';
+import { scallopCircle } from './svg';
 
 export const HAIR_COLORS: HairColor[] = [
   { id: 'black', base: '#2b2233', shade: '#17111d', light: '#5a4a6e' },
+  { id: 'darkbrown', base: '#4f2f1c', shade: '#331c0f', light: '#7d5236' },
   { id: 'brown', base: '#7a4a2b', shade: '#573119', light: '#a8714a' },
   { id: 'blonde', base: '#ffd766', shade: '#e3a93a', light: '#fff0b3' },
   { id: 'red', base: '#e8643c', shade: '#b9431f', light: '#ff9a6e' },
+  { id: 'silver', base: '#dfe5f2', shade: '#aab4cc', light: '#ffffff' },
   { id: 'pink', base: '#ff7fbf', shade: '#e0559b', light: '#ffc0e0' },
   { id: 'purple', base: '#9d6bff', shade: '#7245d6', light: '#cdb3ff' },
+  { id: 'blue', base: '#4d8dff', shade: '#2f63d6', light: '#a6c8ff' },
   { id: 'teal', base: '#2fd0c8', shade: '#1a9fa0', light: '#9af3ea' },
-  { id: 'rainbow', base: '#ff7fbf', shade: '#a57bff', light: '#ffffff', rainbow: true },
+  { id: 'candy', base: '#ff8ec7', shade: '#6f8bff', light: '#ffffff', stops: ['#ff8ec7', '#c58bff', '#6fb4ff'] },
+  { id: 'rainbow', base: '#ff7fbf', shade: '#a57bff', light: '#ffffff', stops: ['#ff5d73', '#ff9f43', '#ffd84a', '#5fd38d', '#4db8ff', '#a57bff'] },
 ];
 
 export interface HairStyle {
@@ -27,26 +31,23 @@ export interface HairPaint {
   tie: string;
 }
 
+/** Hair is painted with a gradient, lighter on top, so it looks glossy and full. */
 export function hairPaint(color: HairColor, uid: string): { paint: HairPaint; defs: string } {
-  if (color.rainbow) {
-    const id = `${uid}-hair`;
-    return {
-      defs: `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="90" y1="30" x2="310" y2="330">${[
-        '#ff5d73',
-        '#ff9f43',
-        '#ffd84a',
-        '#5fd38d',
-        '#4db8ff',
-        '#a57bff',
-      ]
-        .map((c, i) => `<stop offset="${i * 20}%" stop-color="${c}"/>`)
-        .join('')}</linearGradient>`,
-      paint: { fill: `url(#${id})`, shade: '#7a5be0', light: '#ffffff', tie: '#ffffff' },
-    };
-  }
+  const id = `${uid}-hair`;
+  const stops = color.stops
+    ? color.stops.map((c, i, all) => `<stop offset="${Math.round((i / (all.length - 1)) * 100)}%" stop-color="${c}"/>`).join('')
+    : `<stop offset="0" stop-color="${color.light}"/><stop offset=".24" stop-color="${color.base}"/><stop offset=".62" stop-color="${color.base}"/><stop offset="1" stop-color="${color.shade}"/>`;
+  const defs = color.stops
+    ? `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="90" y1="30" x2="310" y2="330">${stops}</linearGradient>`
+    : `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="150" y1="10" x2="250" y2="400">${stops}</linearGradient>`;
   return {
-    defs: '',
-    paint: { fill: color.base, shade: color.shade, light: color.light, tie: color.id === 'pink' ? '#8be9ff' : '#ff6fb5' },
+    defs,
+    paint: {
+      fill: `url(#${id})`,
+      shade: color.stops ? '#7a5be0' : color.shade,
+      light: color.light,
+      tie: color.stops ? '#ffffff' : color.id === 'pink' ? '#8be9ff' : '#ff6fb5',
+    },
   };
 }
 
@@ -169,6 +170,63 @@ export const HAIR_STYLES: HairStyle[] = [
     back: CAP,
     front: (h) => PART(h) + braid(h) + mirrorX(braid(h)),
   },
+  {
+    id: 'topknot',
+    back: (h) =>
+      `<circle cx="200" cy="34" r="40" fill="${h.fill}"/>
+       <path d="M176 30 Q200 6 224 30 Q228 52 200 54 Q186 50 190 38" fill="none" stroke="${h.shade}" stroke-width="4" stroke-linecap="round" opacity=".4"/>` + CAP(h),
+    front: (h) => SWOOP(h) + `<rect x="176" y="58" width="48" height="13" rx="6.5" fill="${h.tie}"/>`,
+  },
+  {
+    id: 'puffs',
+    back: (h) => scallopCircle(112, 76, 56, 11, h.fill, 0.32) + scallopCircle(288, 76, 56, 11, h.fill, 0.32) + CAP(h),
+    front: (h) => {
+      let out = '';
+      const pts: Array<[number, number, number]> = [
+        [122, 134, 18],
+        [132, 108, 20],
+        [154, 90, 20],
+        [182, 82, 20],
+        [212, 82, 20],
+        [240, 88, 20],
+        [264, 106, 20],
+        [278, 134, 18],
+      ];
+      for (const [x, y, r] of pts) out += `<circle cx="${x}" cy="${y}" r="${r}" fill="${h.fill}"/>`;
+      out += `<path d="M118 108 A80 84 0 0 1 282 108 L282 96 A84 60 0 0 0 118 96 Z" fill="${h.fill}"/>`;
+      out += `<ellipse cx="136" cy="104" rx="12" ry="7" fill="${h.tie}" transform="rotate(-50 136 104)"/><ellipse cx="264" cy="104" rx="12" ry="7" fill="${h.tie}" transform="rotate(50 264 104)"/>`;
+      return out + shine(h);
+    },
+  },
+  {
+    id: 'pixie',
+    back: (h) =>
+      `<path d="M104 150 C96 62 150 40 200 40 C250 40 304 62 296 150 L294 190 Q290 212 274 204 L272 150 L128 150 L126 204 Q110 212 106 190 Z" fill="${h.fill}"/>`,
+    front: (h) => {
+      const tuft = `<path d="M108 160 Q108 190 124 204 Q120 180 130 158 Z" fill="${h.fill}"/>`;
+      return (
+        tuft +
+        mirrorX(tuft) +
+        `<path d="M108 164 C98 84 150 42 200 42 C252 42 302 84 292 164 C288 138 278 120 262 108 L250 128 L240 104 L222 130 L210 106 L190 132 L176 110 L160 130 L146 112 L132 126 C119 134 111 148 108 164 Z" fill="${h.fill}"/>` +
+        shine(h)
+      );
+    },
+  },
+  {
+    id: 'halfup',
+    back: (h) => {
+      const tail = `<path d="M150 74 C118 26 80 46 86 104 C100 84 128 82 152 92 Z" fill="${h.fill}"/>
+        <path d="M112 58 Q98 72 98 92" fill="none" stroke="${h.shade}" stroke-width="4" stroke-linecap="round" opacity=".35"/>
+        <ellipse cx="148" cy="80" rx="9" ry="13" fill="${h.tie}" transform="rotate(-35 148 80)"/>`;
+      return (
+        `<path d="M103 140 C96 60 150 40 200 40 C250 40 304 60 297 140 L306 372 Q296 398 272 386 Q250 402 226 388 Q200 402 174 388 Q150 402 128 386 Q104 398 94 372 Z" fill="${h.fill}"/>
+         <path d="M124 250 Q118 320 126 376 M276 250 Q282 320 274 376" fill="none" stroke="${h.shade}" stroke-width="4" stroke-linecap="round" opacity=".35"/>` +
+        tail +
+        mirrorX(tail)
+      );
+    },
+    front: PART,
+  },
 ];
 
 export const hairStyleById = (id: string) => HAIR_STYLES.find((s) => s.id === id) ?? HAIR_STYLES[0];
@@ -176,8 +234,8 @@ export const hairColorById = (id: string) => HAIR_COLORS.find((c) => c.id === id
 
 /** Swatch drawn in the hair colour picker. */
 export function hairSwatch(color: HairColor, uid: string): string {
-  const fill = color.rainbow ? `url(#${uid}-sw)` : color.base;
-  const defs = color.rainbow ? `<defs>${rainbowGradient(`${uid}-sw`, false)}</defs>` : '';
-  return `${defs}<path d="M20 34 C20 16 40 10 54 16 C70 8 88 20 82 40 C96 52 88 76 72 78 C66 92 40 94 32 80 C14 80 8 56 20 34 Z" fill="${fill}"/>
-    <path d="M30 34 Q46 20 64 26" fill="none" stroke="${color.light}" stroke-width="6" stroke-linecap="round" opacity=".7"/>`;
+  const stops = (color.stops ?? [color.light, color.base, color.shade]).map((c, i, all) => `<stop offset="${Math.round((i / (all.length - 1)) * 100)}%" stop-color="${c}"/>`).join('');
+  return `<defs><linearGradient id="${uid}-sw" x1="0" y1="0" x2="${color.stops ? 1 : 0.4}" y2="${color.stops ? 0 : 1}">${stops}</linearGradient></defs>
+    <path d="M20 34 C20 16 40 10 54 16 C70 8 88 20 82 40 C96 52 88 76 72 78 C66 92 40 94 32 80 C14 80 8 56 20 34 Z" fill="url(#${uid}-sw)"/>
+    <path d="M30 34 Q46 20 64 26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55"/>`;
 }

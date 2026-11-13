@@ -12,7 +12,7 @@ let html = '<div class="row">';
 if (what === 'dolls') {
   for (const d of DOLLS) html += `<div class="d">${dollSvg(d.starter)}</div>`;
 } else if (what === 'hair') {
-  for (const s of HAIR_STYLES) html += `<div class="d">${dollSvg({ ...DOLLS[0].starter, accHead: undefined, hair: s.id, hairColor: HAIR_COLORS[HAIR_STYLES.indexOf(s) % 8].id })}</div>`;
+  for (const s of HAIR_STYLES) html += `<div class="d">${dollSvg({ ...DOLLS[0].starter, accHead: undefined, hair: s.id, hairColor: HAIR_COLORS[HAIR_STYLES.indexOf(s) % HAIR_COLORS.length].id })}</div>`;
   for (const s of HAIR_STYLES) html += `<div class="t">${headThumb(DOLLS[2].starter, s.id)}</div>`;
 } else if (what === 'items') {
   for (const it of WEAR_ITEMS) html += `<div class="t"><span>${it.id}</span>${itemThumb(it)}</div>`;
@@ -24,9 +24,9 @@ if (what === 'dolls') {
   for (let i = 0; i < 16; i++) {
     const d = DOLLS[i % 6];
     const dress = i >= 8;
-    html += `<div class="d">${dollSvg({ doll: d.id, hair: HAIR_STYLES[i % 8].id, hairColor: HAIR_COLORS[(i * 3) % 8].id,
-      top: dress ? undefined : tops[i % 8], bottom: dress ? undefined : bots[i % 8], dress: dress ? dresses[i % 8] : undefined,
-      shoes: shoes[i % 8], accHead: heads[i % 8], accNeck: necks[i % 4], accFace: i % 2 ? faces[(i >> 1) % 4] : undefined,
+    html += `<div class="d">${dollSvg({ doll: d.id, hair: HAIR_STYLES[i % HAIR_STYLES.length].id, hairColor: HAIR_COLORS[(i * 5) % HAIR_COLORS.length].id,
+      top: dress ? undefined : tops[(i + 8) % tops.length], bottom: dress ? undefined : bots[(i + 8) % bots.length], dress: dress ? dresses[(i + 8) % dresses.length] : undefined,
+      shoes: shoes[(i + 8) % shoes.length], accHead: heads[i % 8], accNeck: necks[i % 4], accFace: i % 2 ? faces[(i >> 1) % 4] : undefined,
       accHandL: hl[i % 3], accHandR: hr[i % 2], accBack: i % 4 === 0 ? undefined : bk[i % 3],
       lips: 'lip-red', shadow: 'sh-purple', blush: 'bl-pink', faceArt: i % 2 ? 'fa-stars' : 'fa-hearts', nailColor: 'n-red' })}</div>`;
   }

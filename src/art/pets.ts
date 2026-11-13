@@ -1,14 +1,22 @@
-import { darken, heart, lighten, RAINBOW, sparkle, star } from './svg';
+import { darken, heart, lighten, nextUid, RAINBOW, sparkle, star } from './svg';
 
 export interface Pet {
   id: string;
-  /** Inner SVG for a 200 x 200 box, standing on the bottom edge. */
-  draw: () => string;
+  /** Inner SVG for a 200-wide box, standing on the bottom edge. `uid` prefixes gradient ids. */
+  draw: (uid: string) => string;
   /** Floats instead of hopping along the ground. */
   floats?: boolean;
 }
 
 export const PET_VIEWBOX = '0 -24 200 224';
+
+/** Soft light-and-shadow overlay that makes a round shape look like a ball. */
+const ballDefs = (uid: string) =>
+  `<defs><radialGradient id="${uid}-pb" cx=".36" cy=".28" r=".8">
+    <stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".7" stop-color="#4a1040" stop-opacity="0"/><stop offset="1" stop-color="#4a1040" stop-opacity=".26"/>
+  </radialGradient></defs>`;
+const ball = (uid: string, cx: number, cy: number, rx: number, ry: number) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${uid}-pb)"/>`;
 
 interface Critter {
   body: string;
@@ -30,7 +38,7 @@ function eyes(patch?: string): string {
   return `<g class="pet-blink">${e(78)}${e(122)}</g>`;
 }
 
-function critter(c: Critter): string {
+function critter(c: Critter, uid: string): string {
   const dark = darken(c.body, 0.14);
   let ears = '';
   switch (c.ears) {
@@ -59,14 +67,18 @@ function critter(c: Critter): string {
   if (c.tail === 'dog') tail = `<path d="M142 160 Q176 150 172 118" fill="none" stroke="${c.body}" stroke-width="13" stroke-linecap="round"/>`;
   if (c.tail === 'pom') tail = `<circle cx="150" cy="164" r="15" fill="#fff"/>`;
   return (
+    ballDefs(uid) +
     (c.behind ?? '') +
     `<g class="pet-tail">${tail}</g>` +
     `<ellipse cx="100" cy="150" rx="44" ry="42" fill="${c.body}"/>
-     <ellipse cx="100" cy="158" rx="27" ry="28" fill="${c.belly}"/>
+     <ellipse cx="100" cy="158" rx="27" ry="28" fill="${c.belly}"/>` +
+    ball(uid, 100, 150, 44, 42) +
+    `
      <ellipse cx="78" cy="186" rx="17" ry="11" fill="${c.body}" stroke="${dark}" stroke-width="2"/>
      <ellipse cx="122" cy="186" rx="17" ry="11" fill="${c.body}" stroke="${dark}" stroke-width="2"/>` +
     ears +
     `<ellipse cx="100" cy="82" rx="56" ry="50" fill="${c.body}"/>` +
+    ball(uid, 100, 82, 56, 50) +
     eyes(c.eyePatch) +
     `<ellipse cx="66" cy="102" rx="10" ry="6.5" fill="${c.cheeks ?? '#ff8fb0'}" opacity=".6"/><ellipse cx="134" cy="102" rx="10" ry="6.5" fill="${c.cheeks ?? '#ff8fb0'}" opacity=".6"/>
      <path d="M94 97 Q100 93 106 97 Q100 105 94 97 Z" fill="${c.nose ?? '#ff6f91'}"/>
@@ -78,7 +90,7 @@ function critter(c: Critter): string {
 export const PETS: Pet[] = [
   {
     id: 'pet-kitty',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#ffb65c',
         belly: '#fff3dc',
@@ -89,11 +101,11 @@ export const PETS: Pet[] = [
           `<path d="M84 40 L88 56 M100 36 L100 54 M116 40 L112 56" stroke="#e98a2b" stroke-width="5" stroke-linecap="round"/>
            <path d="M52 96 L30 92 M52 104 L32 108 M148 96 L170 92 M148 104 L168 108" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
            <path d="M72 124 Q100 138 128 124" fill="none" stroke="#ff5fae" stroke-width="8" stroke-linecap="round"/><circle cx="100" cy="134" r="7" fill="#ffd84a"/>`,
-      }),
+      }, uid),
   },
   {
     id: 'pet-puppy',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#f6e3c5',
         belly: '#fffaf0',
@@ -106,11 +118,11 @@ export const PETS: Pet[] = [
           `<ellipse cx="124" cy="80" rx="20" ry="22" fill="#a8683d" opacity=".0"/>
            <path d="M96 112 Q100 126 104 112 Z" fill="#ff6f91" stroke="#ff6f91" stroke-width="4" stroke-linejoin="round"/>
            <path d="M72 124 Q100 138 128 124" fill="none" stroke="#18c5c0" stroke-width="8" stroke-linecap="round"/>` + star(100, 136, 7, '#ffd84a'),
-      }),
+      }, uid),
   },
   {
     id: 'pet-bunny',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#ffffff',
         belly: '#ffeef6',
@@ -120,11 +132,11 @@ export const PETS: Pet[] = [
         extra:
           `<path d="M96 110 L96 118 L100 118 L100 110 M100 110 L100 118 L104 118 L104 110" fill="#fff" stroke="#d9c8e6" stroke-width="1.5"/>
            <path d="M88 126 L100 132 L112 126 L112 140 L100 134 L88 140 Z" fill="#c59bff"/>`,
-      }),
+      }, uid),
   },
   {
     id: 'pet-unicorn',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#fff7fd',
         belly: '#ffe3f3',
@@ -139,11 +151,11 @@ export const PETS: Pet[] = [
            <path d="M94 26 L108 20 M96 14 L105 10" stroke="#f0a81c" stroke-width="2.5" stroke-linecap="round"/>` +
           `<circle cx="84" cy="42" r="13" fill="#ff5d73"/><circle cx="102" cy="40" r="11" fill="#ff9f43"/><circle cx="118" cy="44" r="9" fill="#ffd84a"/>` +
           sparkle(150, 60, 7, '#ffd84a'),
-      }),
+      }, uid),
   },
   {
     id: 'pet-dragon',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#7fdc8a',
         belly: '#fff3b8',
@@ -159,11 +171,11 @@ export const PETS: Pet[] = [
           `<path d="M70 44 L62 18 L84 34 Z M130 44 L138 18 L116 34 Z" fill="#fff3b8" stroke="#e8d26a" stroke-width="2" stroke-linejoin="round"/>
            <path d="M92 34 L100 20 L108 34 Z" fill="#b98bff"/>
            <path d="M84 132 Q100 126 116 132 M80 144 Q100 138 120 144" fill="none" stroke="#e8d26a" stroke-width="2.5" stroke-linecap="round"/>`,
-      }),
+      }, uid),
   },
   {
     id: 'pet-panda',
-    draw: () =>
+    draw: (uid) =>
       critter({
         body: '#ffffff',
         belly: '#ffffff',
@@ -176,18 +188,19 @@ export const PETS: Pet[] = [
           `<ellipse cx="62" cy="150" rx="15" ry="24" fill="#2f2a3d" transform="rotate(16 62 150)"/><ellipse cx="138" cy="150" rx="15" ry="24" fill="#2f2a3d" transform="rotate(-16 138 150)"/>
            <ellipse cx="78" cy="186" rx="17" ry="11" fill="#2f2a3d"/><ellipse cx="122" cy="186" rx="17" ry="11" fill="#2f2a3d"/>` +
           heart(100, 150, 10, '#ff6fb1'),
-      }),
+      }, uid),
   },
   {
     id: 'pet-alien',
-    draw: () =>
+    draw: (uid) =>
+      ballDefs(uid) +
       `<g class="pet-tail"><path d="M78 38 Q70 14 60 8 M122 38 Q130 14 140 8" fill="none" stroke="#5fd3a0" stroke-width="6" stroke-linecap="round"/>
        <circle cx="58" cy="8" r="9" fill="#ffd84a"/><circle cx="142" cy="8" r="9" fill="#ff8ec7"/></g>
-       <ellipse cx="100" cy="152" rx="40" ry="38" fill="#7ae8b8"/>
+       <ellipse cx="100" cy="152" rx="40" ry="38" fill="#7ae8b8"/>${ball(uid, 100, 152, 40, 38)}
        <ellipse cx="100" cy="160" rx="24" ry="24" fill="#c9fbe4"/>
        <ellipse cx="60" cy="150" rx="11" ry="20" fill="#7ae8b8" transform="rotate(24 60 150)"/><ellipse cx="140" cy="150" rx="11" ry="20" fill="#7ae8b8" transform="rotate(-24 140 150)"/>
        <ellipse cx="80" cy="186" rx="16" ry="10" fill="#5fd3a0"/><ellipse cx="120" cy="186" rx="16" ry="10" fill="#5fd3a0"/>
-       <ellipse cx="100" cy="82" rx="60" ry="50" fill="#7ae8b8"/>
+       <ellipse cx="100" cy="82" rx="60" ry="50" fill="#7ae8b8"/>${ball(uid, 100, 82, 60, 50)}
        <g class="pet-blink"><ellipse cx="74" cy="82" rx="15" ry="19" fill="#2a1a2e"/><circle cx="69" cy="75" r="5.5" fill="#fff"/><circle cx="79" cy="90" r="2.5" fill="#fff"/>
        <ellipse cx="126" cy="82" rx="15" ry="19" fill="#2a1a2e"/><circle cx="121" cy="75" r="5.5" fill="#fff"/><circle cx="131" cy="90" r="2.5" fill="#fff"/></g>
        <ellipse cx="56" cy="104" rx="9" ry="6" fill="#ff8fb0" opacity=".65"/><ellipse cx="144" cy="104" rx="9" ry="6" fill="#ff8fb0" opacity=".65"/>
@@ -197,13 +210,14 @@ export const PETS: Pet[] = [
   {
     id: 'pet-fish',
     floats: true,
-    draw: () =>
+    draw: (uid) =>
+      ballDefs(uid) +
       `<circle cx="100" cy="104" r="88" fill="#bfeaff" fill-opacity=".35" stroke="#e6f7ff" stroke-width="5"/>
        <path d="M40 66 Q56 34 92 26" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".85"/>
        <g class="pet-tail"><path d="M136 108 L178 76 Q170 108 180 140 Z" fill="#ff8ec7" stroke="#ff5fae" stroke-width="3" stroke-linejoin="round"/></g>
        <path d="M92 62 Q112 34 132 62 Z" fill="#ff8ec7"/>
        <ellipse cx="96" cy="108" rx="54" ry="42" fill="#ffa63d"/>
-       <path d="M96 68 Q112 108 96 148 M120 76 Q132 108 120 140" fill="none" stroke="${lighten('#ffa63d', 0.75)}" stroke-width="9" stroke-linecap="round"/>
+       <path d="M96 68 Q112 108 96 148 M120 76 Q132 108 120 140" fill="none" stroke="${lighten('#ffa63d', 0.75)}" stroke-width="9" stroke-linecap="round"/>${ball(uid, 96, 108, 54, 42)}
        <path d="M92 130 Q108 150 84 152 Z" fill="#ff8ec7"/>
        <g class="pet-blink"><ellipse cx="68" cy="98" rx="10" ry="12" fill="#2a1a2e"/><circle cx="64.5" cy="93.5" r="4" fill="#fff"/><circle cx="71.5" cy="103" r="1.8" fill="#fff"/></g>
        <ellipse cx="60" cy="118" rx="9" ry="6" fill="#ff6f91" opacity=".6"/>
@@ -217,5 +231,5 @@ export const petById = (id: string | undefined) => PETS.find((p) => p.id === id)
 export function petSvg(id: string | undefined, cls = ''): string {
   const p = petById(id);
   if (!p) return '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="pet-svg ${cls}" viewBox="${PET_VIEWBOX}" preserveAspectRatio="xMidYMax meet">${p.draw()}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="pet-svg ${cls}" viewBox="${PET_VIEWBOX}" preserveAspectRatio="xMidYMax meet">${p.draw(nextUid())}</svg>`;
 }

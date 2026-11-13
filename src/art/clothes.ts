@@ -32,6 +32,9 @@ const hipBand = (fill: string) =>
 const waistband = (fill: string, y = 368, h = 12) =>
   `<rect x="148" y="${y}" width="104" height="${h}" rx="${h / 2}" fill="${fill}"/>`;
 
+/** Rounds a skirt or other tube shape with the shared light-and-shadow gradient. */
+const vol = (d: string, uid: string) => `<path d="${d}" fill="url(#${uid}-cyl)"/>`;
+
 const scallopRow = (x1: number, x2: number, y: number, r: number, fill: string, extra = '') => {
   const n = Math.max(2, Math.round((x2 - x1) / (r * 1.5)));
   let out = '';
@@ -161,6 +164,72 @@ export const TOPS: WearItem[] = [
       armUpper: `<path d="M150 252 Q120 270 128 306 Q160 300 168 262 Z" fill="#7fe0a4" stroke="#3fb872" stroke-width="3" stroke-linejoin="round"/>`,
     }),
   },
+  {
+    id: 'top-sweater',
+    slot: 'top',
+    thumb: T_TOP,
+    parts: () => ({
+      torso:
+        `<path d="${teeBody(398)}" fill="#fff3e0"/>
+         <path d="M167 249 Q200 279 233 249" fill="none" stroke="#ff8fa3" stroke-width="10" stroke-linecap="round"/>
+         <rect x="146" y="386" width="108" height="13" rx="6" fill="#ff8fa3"/>
+         <path d="M152 372 L248 372 M150 360 L250 360" stroke="#ffd9bd" stroke-width="3" stroke-linecap="round"/>` + heart(200, 328, 25, '#ff4f6e') + `<circle cx="189" cy="318" r="4" fill="#fff" opacity=".7"/>`,
+      armUpper: longUpper('#fff3e0') + `<line x1="140" y1="312" x2="163" y2="318" stroke="#ff8fa3" stroke-width="7" stroke-linecap="round"/>`,
+      armFore: longFore('#fff3e0', '#ff8fa3'),
+    }),
+  },
+  {
+    id: 'top-polka',
+    slot: 'top',
+    thumb: T_TOP,
+    parts: () => {
+      let dots = '';
+      for (let row = 0; row < 5; row++) for (let i = 0; i < 4; i++) dots += `<circle cx="${166 + i * 23 + (row % 2) * 11}" cy="${294 + row * 21}" r="5.5" fill="#fff"/>`;
+      return {
+        torso:
+          `<path d="${teeBody()}" fill="#ffc93c"/>` +
+          dots +
+          `<path d="M168 250 Q174 284 198 276 Q190 262 184 252 Z" fill="#fff" stroke="#f0e6d8" stroke-width="2"/>
+           <path d="M232 250 Q226 284 202 276 Q210 262 216 252 Z" fill="#fff" stroke="#f0e6d8" stroke-width="2"/>
+           <circle cx="200" cy="280" r="5" fill="#ff6fb1"/>
+           <rect x="147" y="384" width="106" height="10" rx="5" fill="#fff"/>`,
+        armUpper: puffSleeve('#ffc93c', '#fff'),
+      };
+    },
+  },
+  {
+    id: 'top-gold',
+    slot: 'top',
+    thumb: T_TOP,
+    parts: ({ uid }) => ({
+      defs: linearGradient(`${uid}-gd`, ['#fff0a8', '#ffc93c', '#ff9f2e']),
+      torso:
+        `<path d="${tankBody()}" fill="url(#${uid}-gd)"/>
+         <path d="M183 250 Q200 282 217 250" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>` +
+        sparkle(176, 304, 9, '#fff') +
+        sparkle(224, 322, 11, '#fff') +
+        sparkle(190, 356, 8, '#fff') +
+        sparkle(228, 372, 6, '#fff') +
+        sparkle(166, 348, 6, '#fff') +
+        star(204, 300, 6, '#fff') +
+        `<rect x="147" y="384" width="106" height="10" rx="5" fill="#ff8f2e"/>`,
+    }),
+  },
+  {
+    id: 'top-sailor',
+    slot: 'top',
+    thumb: T_TOP,
+    parts: () => ({
+      torso:
+        `<path d="${teeBody()}" fill="#fff"/>
+         <path d="M166 249 Q150 252 147 264 L200 326 L253 264 Q250 252 234 249 L200 296 Z" fill="#2f4fb0"/>
+         <path d="M157 262 L200 314 L243 262" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+         <path d="M200 322 L180 310 L182 338 Z M200 322 L220 310 L218 338 Z" fill="#ff3f5e"/><circle cx="200" cy="322" r="7" fill="#e0203f"/>
+         <path d="M196 328 L190 356 M204 328 L210 356" stroke="#ff3f5e" stroke-width="6" stroke-linecap="round"/>
+         <rect x="147" y="382" width="106" height="12" rx="6" fill="#2f4fb0"/>`,
+      armUpper: shortSleeve('#fff', '#2f4fb0'),
+    }),
+  },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -237,11 +306,13 @@ export const BOTTOMS: WearItem[] = [
     id: 'bot-sport',
     slot: 'bottom',
     thumb: T_SKIRT,
-    parts: () => ({
+    parts: ({ uid }) => ({
       hips:
         `<path d="M150 372 L250 372 L276 462 L124 462 Z" fill="#fff" stroke="#d6e4f5" stroke-width="3" stroke-linejoin="round"/>
          <path d="M168 380 L152 460 M188 380 L182 462 M212 380 L218 462 M232 380 L248 460" stroke="#d6e4f5" stroke-width="3" stroke-linecap="round"/>
-         <path d="M127 446 L273 446" stroke="#18c5c0" stroke-width="8" stroke-linecap="round"/>` + waistband('#18c5c0'),
+         <path d="M127 446 L273 446" stroke="#18c5c0" stroke-width="8" stroke-linecap="round"/>` +
+        vol('M150 372 L250 372 L276 462 L124 462 Z', uid) +
+        waistband('#18c5c0'),
     }),
   },
   {
@@ -302,10 +373,68 @@ export const BOTTOMS: WearItem[] = [
              <path d="M200 612 L140 668 M200 612 L172 672 M200 612 L228 672 M200 612 L260 668" stroke="#ffc4e3" stroke-width="3" stroke-linecap="round"/>`,
           ) +
           `<path d="${body}" fill="url(#${uid}-tl)"/><g clip-path="url(#${uid}-tc)">${scales}</g>` +
+          vol(body, uid) +
           scallopRow(152, 248, 378, 10, '#ff8ec7') +
           `<circle cx="200" cy="378" r="7" fill="#fff"/>`,
       };
     },
+  },
+  {
+    id: 'bot-overalls',
+    slot: 'bottom',
+    thumb: [70, 240, 260, 410],
+    parts: () => ({
+      leg: pantsLeg('#5b9fe8', 628) + `<path d="M159 618 L196 618 L196 634 L160 634 Z" fill="#a9d2ff" stroke="#a9d2ff" stroke-width="5" stroke-linejoin="round"/>`,
+      hips: hipBand('#5b9fe8') + `<path d="M158 392 Q170 404 182 390 M242 392 Q230 404 218 390" fill="none" stroke="#ffd84a" stroke-width="2.5" stroke-dasharray="4 4" stroke-linecap="round"/>`,
+      // the bib sits over whatever top is worn
+      neck:
+        `<path d="M176 304 L170 252 M224 304 L230 252" stroke="#5b9fe8" stroke-width="11" stroke-linecap="round"/>
+         <path d="M170 300 L230 300 Q236 300 236 306 L238 376 L162 376 L164 306 Q164 300 170 300 Z" fill="#5b9fe8" stroke="#3f84d6" stroke-width="3" stroke-linejoin="round"/>
+         <circle cx="176" cy="308" r="6" fill="#ffd84a" stroke="#f0a81c" stroke-width="2"/><circle cx="224" cy="308" r="6" fill="#ffd84a" stroke="#f0a81c" stroke-width="2"/>
+         <path d="M184 326 L216 326 L214 352 Q200 362 186 352 Z" fill="#7db6f2" stroke="#3f84d6" stroke-width="2.5" stroke-linejoin="round"/>` + heart(200, 340, 7, '#ff6fb1'),
+    }),
+  },
+  {
+    id: 'bot-ruffle',
+    slot: 'bottom',
+    thumb: T_SKIRT,
+    parts: () => ({
+      hips: tier(436, 94, 34, '#a57bff') + tier(404, 82, 36, '#4db8ff') + tier(372, 68, 36, '#ff8ec7') + waistband('#ffd84a') + star(200, 374, 8, '#fff'),
+    }),
+  },
+  {
+    id: 'bot-plaid',
+    slot: 'bottom',
+    thumb: T_SKIRT,
+    parts: ({ uid }) => {
+      const d = 'M150 372 L250 372 L274 458 L126 458 Z';
+      const v = [0.2, 0.4, 0.6, 0.8].map((t) => `M${150 + 100 * t} 374 L${126 + 148 * t} 458`).join(' ');
+      return {
+        defs: `<clipPath id="${uid}-pl"><path d="${d}"/></clipPath>`,
+        hips:
+          `<path d="${d}" fill="#e8405f"/>
+           <g clip-path="url(#${uid}-pl)"><path d="${v} M120 402 L280 402 M120 432 L280 432" fill="none" stroke="#2f3f8f" stroke-width="9" opacity=".75"/>
+           <path d="${v} M120 402 L280 402 M120 432 L280 432" fill="none" stroke="#ffd84a" stroke-width="2"/></g>` +
+          vol(d, uid) +
+          waistband('#2f3f8f') +
+          `<circle cx="236" cy="374" r="5" fill="#ffd84a"/>`,
+      };
+    },
+  },
+  {
+    id: 'bot-joggers',
+    slot: 'bottom',
+    thumb: T_BOTTOM,
+    parts: () => ({
+      leg:
+        pantsLeg('#7fe3c4', 620) +
+        `<path d="M161 398 L167 608" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+         <path d="M160 616 L195 616 L195 634 L161 634 Z" fill="#3fc49c" stroke="#3fc49c" stroke-width="5" stroke-linejoin="round"/>`,
+      hips:
+        hipBand('#7fe3c4') +
+        waistband('#fff', 366, 14) +
+        `<path d="M200 380 L190 396 M200 380 L210 396" stroke="#ff6fb1" stroke-width="4" stroke-linecap="round"/><circle cx="200" cy="378" r="4.5" fill="#ff6fb1"/>`,
+    }),
   },
 ];
 
@@ -325,11 +454,12 @@ export const DRESSES: WearItem[] = [
     id: 'dr-ballgown',
     slot: 'dress',
     thumb: T_DRESS,
-    parts: () => ({
+    parts: ({ uid }) => ({
       hips:
         `<path d="M162 350 Q200 338 238 350 Q320 470 342 628 Q300 650 250 638 Q200 654 150 638 Q100 650 58 628 Q80 470 162 350 Z" fill="#ff8fc7"/>` +
         scallopRow(72, 328, 636, 15, '#ffc4e3') +
         `<path d="M162 350 Q118 470 96 566 Q160 536 200 430 Q240 536 304 566 Q282 470 238 350 Z" fill="#ffb6dc"/>` +
+        vol('M162 350 Q200 338 238 350 Q320 470 342 628 Q300 650 250 638 Q200 654 150 638 Q100 650 58 628 Q80 470 162 350 Z', uid) +
         sparkle(120, 590, 9, '#fff') +
         sparkle(200, 560, 11, '#fff') +
         sparkle(282, 594, 9, '#fff') +
@@ -349,10 +479,11 @@ export const DRESSES: WearItem[] = [
     id: 'dr-sun',
     slot: 'dress',
     thumb: [70, 235, 260, 290],
-    parts: () => ({
+    parts: ({ uid }) => ({
       hips:
         `<path d="M154 346 L246 346 L286 484 Q200 506 114 484 Z" fill="#ffd84a"/>
          <path d="M118 474 Q200 496 282 474" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>` +
+        vol('M154 346 L246 346 L286 484 Q200 506 114 484 Z', uid) +
         flower(160, 430, 13, '#fff', '#ff9f43') +
         flower(236, 420, 13, '#fff', '#ff9f43') +
         flower(200, 462, 11, '#fff', '#ff9f43') +
@@ -431,6 +562,7 @@ export const DRESSES: WearItem[] = [
         defs: `<clipPath id="${uid}-rb"><path d="${skirt}"/></clipPath>`,
         hips:
           `<g clip-path="url(#${uid}-rb)">${RAINBOW.map((c, i) => `<rect x="100" y="${346 + i * 23}" width="200" height="24" fill="${c}"/>`).join('')}</g>` +
+          vol(skirt, uid) +
           scallopRow(118, 282, 482, 13, '#fff'),
         torso:
           `<path d="${teeBody(354)}" fill="#fff"/>
@@ -470,6 +602,7 @@ export const DRESSES: WearItem[] = [
       defs: linearGradient(`${uid}-nt`, ['#3a2fb0', '#5a38c8', '#b05ad6']),
       hips:
         `<path d="M158 350 Q200 340 242 350 Q286 480 298 632 Q250 652 200 644 Q150 652 102 632 Q114 480 158 350 Z" fill="url(#${uid}-nt)"/>` +
+        vol('M158 350 Q200 340 242 350 Q286 480 298 632 Q250 652 200 644 Q150 652 102 632 Q114 480 158 350 Z', uid) +
         star(150, 520, 9, '#ffd84a') +
         star(244, 470, 7, '#ffd84a') +
         star(214, 580, 10, '#ffd84a') +
@@ -486,6 +619,92 @@ export const DRESSES: WearItem[] = [
          <path d="M210 296 A16 16 0 1 0 210 326 A12 12 0 1 1 210 296 Z" fill="#ffd84a"/>` + sparkle(180, 300, 6, '#fff'),
       armUpper: shortSleeve('#5a38c8', '#dfe6fb'),
     }),
+  },
+  {
+    id: 'dr-ballet',
+    slot: 'dress',
+    thumb: [50, 235, 300, 250],
+    parts: () => ({
+      leg: pantsLeg('#fff3f8', 640),
+      hips:
+        `<ellipse cx="200" cy="398" rx="128" ry="26" fill="#ff9fd0" opacity=".85"/>` +
+        tutuLayer(408, 122, 17, '#ffb3d9', 0.9) +
+        tutuLayer(396, 108, 16, '#ffd0e8', 0.92) +
+        tutuLayer(384, 90, 15, '#ffffff', 0.92) +
+        sparkle(120, 400, 7, '#fff') +
+        sparkle(282, 396, 7, '#fff') +
+        sparkle(200, 404, 6, '#ffd84a'),
+      torso:
+        `<path d="${tankBody(372)}" fill="#ffb3d9"/>
+         <path d="M183 250 Q200 282 217 250" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+         <rect x="150" y="360" width="100" height="12" rx="6" fill="#ff6fb1"/>
+         <path d="M200 300 L188 292 L188 310 Z M200 300 L212 292 L212 310 Z" fill="#ff6fb1"/><circle cx="200" cy="300" r="5" fill="#ff3f9a"/>` +
+        sparkle(178, 330, 6, '#fff') +
+        sparkle(222, 338, 6, '#fff'),
+    }),
+  },
+  {
+    id: 'dr-cheer',
+    slot: 'dress',
+    thumb: [70, 235, 260, 260],
+    parts: ({ uid }) => {
+      const d = 'M152 356 L248 356 L278 452 L122 452 Z';
+      return {
+        hips:
+          `<path d="${d}" fill="#3f7bf0"/>
+           <path d="M176 366 L160 452 L186 452 Z M224 366 L214 452 L240 452 Z M200 366 L190 452 L210 452 Z" fill="#ffd84a"/>
+           <path d="M126 440 L274 440" stroke="#fff" stroke-width="7" stroke-linecap="round"/>` + vol(d, uid),
+        torso:
+          `<path d="${tankBody(364)}" fill="#3f7bf0"/>
+           <path d="M160 268 L200 318 L240 268" fill="none" stroke="#ffd84a" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+           <path d="M160 268 L200 318 L240 268" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+           <rect x="150" y="352" width="100" height="12" rx="6" fill="#ffd84a"/>` + star(200, 338, 11, '#fff'),
+      };
+    },
+  },
+  {
+    id: 'dr-ocean',
+    slot: 'dress',
+    thumb: T_DRESS,
+    parts: ({ uid }) => {
+      const d = 'M158 350 Q200 340 242 350 Q284 480 294 634 L106 634 Q116 480 158 350 Z';
+      return {
+        defs: `${linearGradient(`${uid}-oc`, ['#8ff0e6', '#3fb4f0', '#3f6fe0'])}<clipPath id="${uid}-occ"><path d="${d}"/></clipPath>`,
+        hips:
+          `<path d="${d}" fill="url(#${uid}-oc)"/>
+           <g clip-path="url(#${uid}-occ)">${scallopRow(110, 290, 452, 15, '#fff', 'opacity=".4"')}${scallopRow(104, 296, 532, 17, '#fff', 'opacity=".4"')}${scallopRow(100, 300, 606, 18, '#fff', 'opacity=".45"')}</g>` +
+          vol(d, uid) +
+          scallopRow(112, 288, 636, 13, '#fff') +
+          `<circle cx="170" cy="490" r="5" fill="#fff" opacity=".8"/><circle cx="236" cy="566" r="6" fill="#fff" opacity=".8"/><circle cx="214" cy="420" r="4" fill="#fff" opacity=".8"/>`,
+        torso:
+          `<path d="${tankBody(358)}" fill="#35c8d6"/>
+           <path d="M183 250 Q200 282 217 250" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+           <path d="M176 318 Q178 294 200 292 Q222 294 224 318 Q216 338 200 340 Q184 338 176 318 Z" fill="#ffd0e6" stroke="#ff8ec7" stroke-width="2.5"/>
+           <path d="M200 338 L186 304 M200 338 L200 294 M200 338 L214 304" stroke="#ff8ec7" stroke-width="2.5" stroke-linecap="round" fill="none"/>` +
+          scallopRow(154, 246, 354, 8, '#fff'),
+        armUpper: shortSleeve('#8ff0e6', '#fff'),
+      };
+    },
+  },
+  {
+    id: 'dr-hero',
+    slot: 'dress',
+    thumb: [60, 235, 280, 410],
+    parts: ({ uid }) => {
+      const d = 'M152 362 L248 362 L270 424 L252 414 L236 432 L218 414 L200 432 L182 414 L164 432 L148 414 L130 424 Z';
+      return {
+        leg: pantsLeg('#5a2fb8', 634) + star(177, 510, 9, '#ffd84a'),
+        hips: `<path d="${d}" fill="#7a45e0"/>` + vol(d, uid),
+        torso:
+          `<path d="${teeBody(372)}" fill="#e8308f"/>
+           <path d="M167 249 Q200 279 233 249" fill="none" stroke="#ffd84a" stroke-width="6" stroke-linecap="round"/>
+           <circle cx="200" cy="314" r="27" fill="#fff"/>` +
+          star(200, 315, 19, '#ffcf3f') +
+          `<rect x="148" y="356" width="104" height="15" rx="7.5" fill="#ffcf3f"/><rect x="189" y="353" width="22" height="21" rx="5" fill="#fff" stroke="#f0a81c" stroke-width="2.5"/>`,
+        armUpper: longUpper('#e8308f'),
+        armFore: longFore('#e8308f', '#ffcf3f'),
+      };
+    },
   },
 ];
 
@@ -596,5 +815,58 @@ export const SHOES: WearItem[] = [
          <rect x="152" y="580" width="50" height="14" rx="7" fill="#27d3c3"/>` + star(177, 648, 6, '#ff6fb1'),
     }),
   },
+  {
+    id: 'sh-rain',
+    slot: 'shoes',
+    thumb: [100, 560, 200, 130],
+    parts: () => ({
+      foot:
+        `<path d="M159 592 L196 592 L193 640 Q201 646 200 658 Q200 671 187 671 L163 671 Q150 671 150 656 Q152 646 161 640 Z" fill="#ffd23c"/>
+         <rect x="154" y="584" width="46" height="15" rx="7.5" fill="#ff5f5f"/>
+         <path d="M150 662 Q150 671 163 671 L187 671 Q200 671 200 662 Z" fill="#ff5f5f"/>
+         <path d="M176 610 Q168 622 176 628 Q184 622 176 610 Z" fill="#4db8ff"/>
+         <path d="M165 604 L165 634" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/>`,
+    }),
+  },
+  {
+    id: 'sh-hightops',
+    slot: 'shoes',
+    thumb: [104, 580, 192, 110],
+    parts: () => ({
+      foot:
+        `<path d="M160 610 L194 610 L193 640 Q201 644 200 656 Q200 671 187 671 L163 671 Q150 671 150 656 Q152 644 161 640 Z" fill="#8f6bff"/>
+         <path d="M150 660 Q150 671 163 671 L187 671 Q200 671 200 660 Z" fill="#fff"/>
+         <path d="M156 656 Q175 644 194 656 L194 661 L156 661 Z" fill="#fff"/>
+         <path d="M167 618 L187 618 M167 627 L187 627 M167 636 L187 636" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+         <rect x="156" y="604" width="42" height="11" rx="5.5" fill="#ff6fb1"/>` + star(190, 648, 4.5, '#ffd84a'),
+    }),
+  },
+  {
+    id: 'sh-bunny',
+    slot: 'shoes',
+    thumb: [104, 584, 192, 106],
+    parts: () => ({
+      foot:
+        `<ellipse cx="166" cy="632" rx="6" ry="14" fill="#ffc4e3" transform="rotate(-12 166 632)"/><ellipse cx="184" cy="632" rx="6" ry="14" fill="#ffc4e3" transform="rotate(12 184 632)"/>
+         <ellipse cx="166" cy="634" rx="2.6" ry="9" fill="#ff8ec7" transform="rotate(-12 166 634)"/><ellipse cx="184" cy="634" rx="2.6" ry="9" fill="#ff8ec7" transform="rotate(12 184 634)"/>
+         <ellipse cx="175" cy="657" rx="27" ry="15" fill="#ffd9ec"/>
+         <circle cx="166" cy="655" r="2.6" fill="#2a1a2e"/><circle cx="184" cy="655" r="2.6" fill="#2a1a2e"/>
+         <ellipse cx="175" cy="661" rx="3.2" ry="2.2" fill="#ff6f91"/>
+         <ellipse cx="158" cy="662" rx="4" ry="2.4" fill="#ff8fb0" opacity=".6"/><ellipse cx="192" cy="662" rx="4" ry="2.4" fill="#ff8fb0" opacity=".6"/>`,
+    }),
+  },
+  {
+    id: 'sh-gold',
+    slot: 'shoes',
+    thumb: T_SHOES,
+    parts: () => ({
+      foot:
+        `<path d="M150 656 Q149 646 160 646 L190 646 Q201 646 200 656 Q200 671 187 671 L163 671 Q150 671 150 656 Z" fill="#ffcf3f" stroke="#f0a81c" stroke-width="2"/>
+         <path d="M162 636 L190 636" stroke="#ffcf3f" stroke-width="6" stroke-linecap="round"/>
+         <path d="M176 646 L176 636" stroke="#ffcf3f" stroke-width="5" stroke-linecap="round"/>` +
+        star(176, 658, 6, '#fff') +
+        sparkle(160, 652, 5, '#fff') +
+        sparkle(192, 664, 4, '#fff'),
+    }),
+  },
 ];
-

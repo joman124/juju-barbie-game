@@ -13,7 +13,11 @@ const SUIT = '#f4eaff';
 const SUIT_TRIM = '#d8c2ff';
 
 export interface ComposeOpts {
+  /** Prefix for gradient ids; must match the uid given to the items' parts(). */
+  uid: string;
   skin: string;
+  /** Soft shadow the fringe casts on the forehead. */
+  hairShadow?: string;
   /** Plain dress-form look used behind wardrobe thumbnails. */
   mannequin?: boolean;
   face?: string;
@@ -29,6 +33,28 @@ export interface ComposeOpts {
 }
 
 const join = (layers: Parts[], key: keyof Parts) => layers.map((l) => l[key] ?? '').join('');
+
+const HEAD_D = 'M118 145 C118 92 154 66 200 66 C246 66 282 92 282 145 C282 197 250 234 200 234 C150 234 118 197 118 145 Z';
+const TORSO_D = 'M170 248 Q150 250 148 270 L158 340 Q150 370 150 400 L250 400 Q250 370 242 340 L252 270 Q250 250 230 248 Z';
+/** Colour of the soft shadows that give the doll and her clothes some roundness. */
+export const SHADE = '#4a1040';
+
+/**
+ * Shared shading gradients. `-cyl` rounds anything tube-shaped (torso, skirts,
+ * tails); `-face` rounds the head. Items use them through `vol()` in clothes.ts.
+ */
+function shadingDefs(uid: string, faceShade: string): string {
+  return `<linearGradient id="${uid}-cyl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${SHADE}" stop-opacity=".3"/><stop offset=".2" stop-color="${SHADE}" stop-opacity=".05"/>
+      <stop offset=".36" stop-color="#fff" stop-opacity=".24"/><stop offset=".56" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".8" stop-color="${SHADE}" stop-opacity=".07"/><stop offset="1" stop-color="${SHADE}" stop-opacity=".32"/>
+    </linearGradient>
+    <radialGradient id="${uid}-face" cx=".4" cy=".3" r=".78">
+      <stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".7" stop-color="${faceShade}" stop-opacity="0"/><stop offset="1" stop-color="${faceShade}" stop-opacity=".5"/>
+    </radialGradient>
+    <clipPath id="${uid}-hc"><path d="${HEAD_D}"/></clipPath>`;
+}
 
 /** Stacks body, clothes, hair and accessories in a fixed order. */
 export function composeDoll(o: ComposeOpts): string {
@@ -50,7 +76,10 @@ export function composeDoll(o: ComposeOpts): string {
            <path d="M156 388 L199 388 L198 424 L157 424 Z" fill="${suit}" stroke="${suit}" stroke-width="7" stroke-linejoin="round"/>`
         : '') +
         join(L, 'foot') +
-        join(L, 'leg'),
+        join(L, 'leg') +
+        // a highlight down the shin and a shadow on the inside edge round the leg off
+        `<path d="M171 404 L175 628" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".17"/>
+         <path d="M196 398 L188 634" fill="none" stroke="${SHADE}" stroke-width="7" stroke-linecap="round" opacity=".13"/>`,
     );
   const tail = join(L, 'tail');
   const legs = tail ? pivot(200, 392, 'tail', tail) : o.hideLegs ? '' : legArt('leg-l') + mirror(legArt('leg-r'));
@@ -59,7 +88,7 @@ export function composeDoll(o: ComposeOpts): string {
   const torso = body
     ? `<rect x="186" y="214" width="28" height="46" rx="10" fill="${skin}"/>
        <path d="M186 240 Q200 252 214 240 L214 226 L186 226 Z" fill="${shade}" opacity=".45"/>
-       <path d="M170 248 Q150 250 148 270 L158 340 Q150 370 150 400 L250 400 Q250 370 242 340 L252 270 Q250 250 230 248 Z" fill="${skin}"/>
+       <path d="${TORSO_D}" fill="${skin}"/>
        <path d="M166 258 L183 256 Q200 280 217 256 L234 258 L243 340 Q250 370 250 402 L150 402 Q150 370 157 340 Z" fill="${suit}"/>` +
       (o.mannequin
         ? ''
@@ -85,9 +114,13 @@ export function composeDoll(o: ComposeOpts): string {
               (o.nails ?? '')
             : '') +
             join(L, 'armFore') +
+            `<path d="M137 354 L131 400" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".18"/>` +
+            (body ? `<ellipse cx="125" cy="416" rx="4" ry="5.5" fill="#fff" opacity=".22"/>` : '') +
             (held ? pivot(130, 421, 'held', held) : ''),
         ) +
-        join(L, 'armUpper'),
+        join(L, 'armUpper') +
+        `<path d="M152 282 L141 336" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".18"/>
+         <path d="M165 284 L149 342" fill="none" stroke="${SHADE}" stroke-width="5" stroke-linecap="round" opacity=".11"/>`,
     );
 
   // --- head -----------------------------------------------------------
@@ -99,7 +132,8 @@ export function composeDoll(o: ComposeOpts): string {
         'head',
         `<circle cx="119" cy="162" r="13" fill="${skin}"/><circle cx="281" cy="162" r="13" fill="${skin}"/>
          <circle cx="119" cy="163" r="6" fill="${shade}" opacity=".35"/><circle cx="281" cy="163" r="6" fill="${shade}" opacity=".35"/>
-         <path d="M118 145 C118 92 154 66 200 66 C246 66 282 92 282 145 C282 197 250 234 200 234 C150 234 118 197 118 145 Z" fill="${skin}"/>` +
+         <path d="${HEAD_D}" fill="${skin}"/><path d="${HEAD_D}" fill="url(#${o.uid}-face)"/>` +
+          (o.hairShadow ? `<g clip-path="url(#${o.uid}-hc)"><g opacity=".2" transform="translate(0 7)">${o.hairShadow}</g></g>` : '') +
           (o.face ?? '') +
           (o.hairFront ?? '') +
           join(L, 'face') +
@@ -107,10 +141,11 @@ export function composeDoll(o: ComposeOpts): string {
           join(L, 'over'),
       );
 
-  const defs = join(L, 'defs');
+  const faceShade = o.mannequin ? darken(skin, 0.3) : mix(skin, '#8a2438', 0.55);
+  const defs = shadingDefs(o.uid, faceShade) + join(L, 'defs');
 
   return (
-    (defs ? `<defs>${defs}</defs>` : '') +
+    `<defs>${defs}</defs>` +
     pivot(
       200,
       670,
@@ -121,6 +156,7 @@ export function composeDoll(o: ComposeOpts): string {
         torso +
         pivot(200, 372, 'swish', join(L, 'hips')) +
         join(L, 'torso') +
+        (body ? `<path d="${TORSO_D}" fill="url(#${o.uid}-cyl)"/>` : '') +
         join(L, 'neck') +
         arm('l', o.handL ?? '') +
         mirror(arm('r', o.handR ?? '')) +
@@ -168,6 +204,8 @@ function face(d: DollDef, look: Look): string {
     (lips ? `<ellipse cx="200" cy="210" rx="5" ry="1.8" fill="#fff" opacity=".6"/>` : '')
   );
 }
+
+const SHADOW_PAINT = { fill: SHADE, shade: SHADE, light: SHADE, tie: SHADE };
 
 function tinyNails(look: Look): string {
   const sw = byId(NAIL_COLORS, look.nailColor);
@@ -221,10 +259,12 @@ export function dollMarkup(look: Look, uid = nextUid()): string {
   const { layers, handL, handR, hideLegs } = lookLayers(look, uid);
   if (defs) layers.unshift({ defs });
   return composeDoll({
+    uid,
     skin: d.skin,
     face: face(d, look),
     hairBack: style.back(paint),
     hairFront: style.front(paint),
+    hairShadow: style.front(SHADOW_PAINT),
     layers,
     handL,
     handR,
@@ -244,10 +284,12 @@ export function headThumb(look: Look, hairId: string): string {
   const { paint, defs } = hairPaint(hairColorById(look.hairColor), uid);
   const style = hairStyleById(hairId);
   const inner = composeDoll({
+    uid,
     skin: d.skin,
     face: face(d, { ...look, faceArt: undefined }),
     hairBack: style.back(paint),
     hairFront: style.front(paint),
+    hairShadow: style.front(SHADOW_PAINT),
     layers: defs ? [{ defs }] : [],
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 -10 340 340" preserveAspectRatio="xMidYMid meet">${inner}</svg>`;

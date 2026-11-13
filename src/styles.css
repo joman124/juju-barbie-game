@@ -993,7 +993,7 @@ svg {
 @media (orientation: portrait) {
   .studio {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 47fr) minmax(0, 53fr);
+    grid-template-rows: minmax(0, 42fr) minmax(0, 58fr);
   }
   .stage {
     border-radius: 0 0 44px 44px;

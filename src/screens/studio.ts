@@ -52,9 +52,11 @@ const wear = (items: WearItem[]): Opt[] => items.map((it) => ({ id: it.id, slot:
 /** Garment on its own (no dress form), used as a sub-tab icon. */
 function bareIcon(it: WearItem): string {
   return cached(`bare-${it.id}`, () => {
-    const p = it.parts({ uid: nextUid() });
+    const uid = nextUid();
+    const p = it.parts({ uid });
     const [x, y, w, h] = it.thumb;
     const inner = composeDoll({
+      uid,
       skin: '#fff',
       layers: [p],
       handL: it.slot === 'accHandL' ? p.hand : '',
@@ -123,7 +125,7 @@ const TABS: Tab[] = [
       },
       {
         id: 'color',
-        icon: () => swatchIcon(hairSwatch(HAIR_COLORS[7], 'tabsw')),
+        icon: () => swatchIcon(hairSwatch(HAIR_COLORS[HAIR_COLORS.length - 1], 'tabsw')),
         opts: HAIR_COLORS.map((c) => ({ id: c.id, slot: 'hairColor' as const, thumb: () => swatchIcon(hairSwatch(c, `sw${c.id}`)) })),
       },
     ],

@@ -16,7 +16,7 @@ export function lookPictureSvg(look: Look, opts: { audience?: boolean; cls?: str
   const dw = (dh * DOLL_VB.w) / DOLL_VB.h;
   const pet = petById(look.pet);
   const petArt = pet
-    ? `<svg x="${pet.floats ? 770 : 764}" y="${pet.floats ? 380 : 684}" width="176" height="197" viewBox="${PET_VIEWBOX}">${pet.draw()}</svg>`
+    ? `<svg x="${pet.floats ? 770 : 764}" y="${pet.floats ? 380 : 684}" width="176" height="197" viewBox="${PET_VIEWBOX}">${pet.draw(`${uid}p`)}</svg>`
     : '';
   const glints = sparkle(300, 90, 22, '#fff') + sparkle(900, 150, 16, '#fff') + sparkle(880, 420, 14, '#fff', 'opacity=".9"') + sparkle(320, 470, 12, '#fff', 'opacity=".9"');
   return `<svg xmlns="http://www.w3.org/2000/svg" class="${opts.cls ?? ''}" viewBox="240 0 ${PHOTO_W} ${PHOTO_H}" preserveAspectRatio="xMidYMid slice">
