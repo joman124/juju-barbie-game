@@ -53,39 +53,6 @@ export const ICONS = {
   ),
   close: wrap(`<path d="M26 26 L74 74 M74 26 L26 74" stroke="${W}" stroke-width="14" stroke-linecap="round"/>`),
   check: wrap(`<path d="M22 52 L42 72 L80 28" fill="none" stroke="${W}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>`),
-  clothes: wrap(
-    `<path d="M34 16 Q50 30 66 16 L90 32 L78 50 L70 44 L70 86 L30 86 L30 44 L22 50 L10 32 Z" fill="${W}" stroke="${W}" stroke-width="5" stroke-linejoin="round"/><path d="${heartPath(50, 60, 9)}" fill="#ff6fb1"/>`,
-  ),
-  crown: wrap(
-    `<path d="M14 78 L8 28 L32 50 L50 16 L68 50 L92 28 L86 78 Z" fill="#ffd84a" stroke="${W}" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="60" r="7" fill="#ff5f86"/><circle cx="30" cy="64" r="4.5" fill="#7ad7ff"/><circle cx="70" cy="64" r="4.5" fill="#7ad7ff"/>`,
-  ),
-  hair: wrap(
-    `<rect x="12" y="20" width="76" height="20" rx="10" fill="${W}"/>
-     <path d="M20 40 L20 82 M32 40 L32 76 M44 40 L44 84 M56 40 L56 76 M68 40 L68 84 M80 40 L80 78" stroke="${W}" stroke-width="7" stroke-linecap="round"/>`,
-  ),
-  makeup: wrap(
-    `<rect x="30" y="50" width="40" height="42" rx="6" fill="${W}"/><rect x="34" y="40" width="32" height="14" rx="3" fill="#ffd84a"/>
-     <path d="M38 40 L38 22 L62 8 L62 40 Z" fill="#ff3f6e" stroke="#ff3f6e" stroke-width="4" stroke-linejoin="round"/>`,
-  ),
-  nails: wrap(
-    `<rect x="39" y="6" width="22" height="36" rx="7" fill="${W}"/><rect x="26" y="40" width="48" height="52" rx="15" fill="#ff6fb1" stroke="${W}" stroke-width="6"/>
-     <path d="M38 54 Q36 68 40 80" fill="none" stroke="${W}" stroke-width="6" stroke-linecap="round" opacity=".7"/>`,
-  ),
-  pets: wrap(
-    `<ellipse cx="50" cy="66" rx="24" ry="20" fill="${W}"/><ellipse cx="20" cy="46" rx="10" ry="13" fill="${W}"/><ellipse cx="80" cy="46" rx="10" ry="13" fill="${W}"/>
-     <ellipse cx="38" cy="26" rx="10" ry="13" fill="${W}"/><ellipse cx="62" cy="26" rx="10" ry="13" fill="${W}"/>`,
-  ),
-  lips: wrap(
-    `<path d="M10 50 Q30 24 50 38 Q70 24 90 50 Q50 92 10 50 Z" fill="#ff3f6e" stroke="${W}" stroke-width="5" stroke-linejoin="round"/><path d="M16 50 Q50 62 84 50" fill="none" stroke="#c2184b" stroke-width="4" stroke-linecap="round"/>`,
-  ),
-  eye: wrap(
-    `<path d="M8 54 Q50 6 92 54 Q50 30 8 54 Z" fill="#a877ff"/>
-     <path d="M10 56 Q50 18 90 56 Q50 90 10 56 Z" fill="${W}"/><circle cx="50" cy="56" r="17" fill="#3f9be8"/><circle cx="50" cy="56" r="8" fill="#2a1a2e"/><circle cx="44" cy="50" r="4.5" fill="${W}"/>
-     <path d="M10 56 Q50 18 90 56" fill="none" stroke="#2a1a2e" stroke-width="6" stroke-linecap="round"/>`,
-  ),
-  cheek: wrap(
-    `<circle cx="50" cy="54" r="38" fill="#ff8fb0" opacity=".75"/><path d="${starPath(50, 54, 22)}" fill="#ffd84a" stroke="#ffd84a" stroke-width="4" stroke-linejoin="round"/>` + sparkle(82, 20, 9, W),
-  ),
   camera: wrap(
     `<rect x="10" y="30" width="80" height="54" rx="12" fill="${W}"/><rect x="34" y="18" width="32" height="18" rx="6" fill="${W}"/><circle cx="50" cy="57" r="18" fill="#8f6bff"/><circle cx="50" cy="57" r="9" fill="#cdb3ff"/>`,
   ),

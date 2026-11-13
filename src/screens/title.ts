@@ -4,7 +4,7 @@ import { ICONS } from '../art/icons';
 import { dollSvg } from '../art/doll';
 import { sparkle, star } from '../art/svg';
 import { DOLLS } from '../dolls';
-import { loadLooks } from '../state';
+import { hasFlag, loadLooks } from '../state';
 
 function twinkles(): string {
   const pts: Array<[number, number, number, string]> = [
@@ -54,6 +54,8 @@ export function titleScreen(): Screen {
       mute: muteAction,
     },
     hintTarget: () => root.querySelector('.btn-play'),
+    // a brand-new player gets pointed in the right direction straight away
+    hintDelay: () => (hasFlag('lesson') ? 6000 : 1800),
     onShow: () => audio.music('studio'),
   };
 }

@@ -1,6 +1,6 @@
 // Dev-only contact sheet: every doll and every item, for checking the art.
 import { DOLLS } from './dolls';
-import { dollSvg, headThumb } from './art/doll';
+import { dollBustSvg, dollSvg, headThumb } from './art/doll';
 import { WEAR_ITEMS, itemThumb } from './art/catalog';
 import { HAIR_STYLES, HAIR_COLORS } from './art/hair';
 import { PETS, petSvg } from './art/pets';
@@ -30,6 +30,28 @@ if (what === 'dolls') {
       accHandL: hl[i % 3], accHandR: hr[i % 2], accBack: i % 4 === 0 ? undefined : bk[i % 3],
       lips: 'lip-red', shadow: 'sh-purple', blush: 'bl-pink', faceArt: i % 2 ? 'fa-stars' : 'fa-hearts', nailColor: 'n-red' })}</div>`;
   }
+}
+if (what === 'faces') {
+  // every doll with every expression, then front and back views
+  const bust = (look: (typeof DOLLS)[number]['starter'], ex: string) =>
+    `<div class="t" style="width:150px;height:150px" data-ex="${ex}"><span>${ex}</span>${dollBustSvg({ ...look, accHead: undefined, accFace: undefined })}</div>`;
+  for (const d of DOLLS) for (const ex of ['smile', 'grin', 'wink', 'wow', 'kiss']) html += bust(d.starter, ex);
+  for (const d of DOLLS) html += `<div class="d">${dollSvg(d.starter, '', { back: true, ground: true })}</div>`;
+}
+if (what === 'pairs') {
+  // every item in slot `a` with every item in slot `b`, to spot clashes
+  const a = q.get('a') ?? 'hair';
+  const b = q.get('b') ?? 'accHead';
+  const box = q.get('box') ?? '40 -40 320 300';
+  const ids = (k: string) => (k === 'hair' ? HAIR_STYLES.map((s) => s.id) : WEAR_ITEMS.filter((i) => i.slot === k).map((i) => i.id));
+  const base = { doll: q.get('doll') ?? 'sunny', hair: 'long', hairColor: 'brown', top: 'top-star', bottom: 'bot-shorts', shoes: 'sh-sneakers' };
+  html = `<div style="display:grid;grid-template-columns:repeat(${ids(a).length},${q.get('w') ?? 118}px);gap:4px;padding:6px">`;
+  for (const y of ids(b))
+    for (const x of ids(a)) {
+      const look: Record<string, string | undefined> = { ...base, [a]: x, [b]: y };
+      if (a === 'dress' || b === 'dress') { look.top = undefined; look.bottom = undefined; }
+      html += `<div style="background:#fff;border-radius:8px;overflow:hidden;aspect-ratio:${box.split(' ')[2]}/${box.split(' ')[3]}"><svg viewBox="${box}" style="width:100%;height:100%">${dollSvg(look as never).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</svg></div>`;
+    }
 }
 if (what === 'icon') {
   // App icon artwork; scripts/make-icons.cjs photographs this at each size.

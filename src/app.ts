@@ -21,6 +21,8 @@ export interface Screen {
   onStagePress?: (x: number, y: number) => void;
   /** Element the idle hint hand should point at. */
   hintTarget?: () => Element | null;
+  /** How long to wait before pointing (ms). Short while a child is being shown the ropes. */
+  hintDelay?: () => number;
   onShow?: () => void;
   onHide?: () => void;
 }
@@ -81,7 +83,7 @@ function hideHint(): void {
 }
 
 /** After a few idle seconds, a bouncing hand points at the next thing to tap. */
-export function armHint(delay = HINT_DELAY): void {
+export function armHint(delay = current?.hintDelay?.() ?? HINT_DELAY): void {
   window.clearTimeout(hintTimer);
   hideHint();
   hintTimer = window.setTimeout(() => {
@@ -89,8 +91,8 @@ export function armHint(delay = HINT_DELAY): void {
       const target = current?.hintTarget?.();
       if (!target || !document.body.contains(target)) return hideHint();
       const r = target.getBoundingClientRect();
-      hintEl.style.left = `${r.left + r.width * 0.62}px`;
-      hintEl.style.top = `${r.top + r.height * 0.6}px`;
+      hintEl.style.left = `${r.left + r.width * 0.56}px`;
+      hintEl.style.top = `${r.top + r.height * 0.56}px`;
       hintEl.classList.add('on');
     };
     place();
@@ -148,7 +150,7 @@ function onCancel(ev: PointerEvent): void {
 
 export function initApp(root: HTMLElement): void {
   appEl = root;
-  hintEl = html(`<div class="hint-hand" aria-hidden="true">${ICONS.hand}</div>`);
+  hintEl = html(`<div class="hint-hand" aria-hidden="true"><span class="hint-ring"></span><span class="hint-finger">${ICONS.hand}</span></div>`);
   document.body.appendChild(hintEl);
 
   // Safari only lets sound start from certain touch events, so try on each of them.

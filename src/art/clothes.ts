@@ -18,6 +18,7 @@ const puffSleeve = (fill: string, trim: string) =>
 const longUpper = (fill: string) => `<line x1="157" y1="271" x2="139" y2="345" stroke="${fill}" stroke-width="30" stroke-linecap="round"/>`;
 const longFore = (fill: string, cuff: string) =>
   `<line x1="139" y1="345" x2="132" y2="396" stroke="${fill}" stroke-width="27" stroke-linecap="round"/>
+   <path d="M129 350 Q138 357 148 351 M128 362 Q136 367 144 363" fill="none" stroke="#4a1040" stroke-width="2.6" stroke-linecap="round" opacity=".14"/>
    <line x1="121" y1="402" x2="143" y2="405" stroke="${cuff}" stroke-width="9" stroke-linecap="round"/>`;
 
 /** Trouser leg from the hip down to `toY`. */
@@ -25,7 +26,11 @@ const pantsLeg = (fill: string, toY: number, flare = 0) => {
   const t = (toY - 388) / 254;
   const l = 157 + 8 * t - 5 - flare;
   const r = 198 - 9 * t + 5 + flare;
-  return `<path d="M153 386 L202 386 L${r} ${toY} L${l} ${toY} Z" fill="${fill}" stroke="${fill}" stroke-width="6" stroke-linejoin="round"/>`;
+  const creases =
+    toY > 560
+      ? `<path d="M164 508 Q177 516 191 508 M167 524 Q177 529 188 524" fill="none" stroke="#4a1040" stroke-width="2.8" stroke-linecap="round" opacity=".14"/>`
+      : '';
+  return `<path d="M153 386 L202 386 L${r} ${toY} L${l} ${toY} Z" fill="${fill}" stroke="${fill}" stroke-width="6" stroke-linejoin="round"/>${creases}`;
 };
 const hipBand = (fill: string) =>
   `<path d="M148 372 L252 372 Q254 392 252 412 L206 412 L200 400 L194 412 L148 412 Q146 392 148 372 Z" fill="${fill}" stroke="${fill}" stroke-width="4" stroke-linejoin="round"/>`;
@@ -34,6 +39,32 @@ const waistband = (fill: string, y = 368, h = 12) =>
 
 /** Rounds a skirt or other tube shape with the shared light-and-shadow gradient. */
 const vol = (d: string, uid: string) => `<path d="${d}" fill="url(#${uid}-cyl)"/>`;
+
+const SHADE = '#4a1040';
+
+/** The shadow a skirt hem casts on the leg below it. Goes in an item's `leg` part. */
+const hemShadow = (y: number, uid: string) => `<rect x="150" y="${y}" width="56" height="34" fill="url(#${uid}-drop)"/>`;
+
+/**
+ * Soft folds running from a waist down to a hem: each is a shadow line with a
+ * highlight beside it. `top` and `bottom` are [left x, right x, y].
+ */
+function folds(top: [number, number, number], bottom: [number, number, number], n: number): string {
+  let out = '';
+  for (let i = 1; i <= n; i++) {
+    const t = i / (n + 1);
+    const x1 = top[0] + (top[1] - top[0]) * t;
+    const x2 = bottom[0] + (bottom[1] - bottom[0]) * t;
+    const y1 = top[2] + (bottom[2] - top[2]) * 0.14;
+    const y2 = top[2] + (bottom[2] - top[2]) * 0.93;
+    const xa = x1 + (x2 - x1) * 0.14;
+    const xb = x1 + (x2 - x1) * 0.93;
+    const bend = (t - 0.5) * 26;
+    const d = (dx: number) => `M${(xa + dx).toFixed(1)} ${y1.toFixed(1)} Q${((xa + xb) / 2 + bend + dx).toFixed(1)} ${((y1 + y2) / 2).toFixed(1)} ${(xb + dx).toFixed(1)} ${y2.toFixed(1)}`;
+    out += `<path d="${d(0)}" fill="none" stroke="${SHADE}" stroke-width="5" stroke-linecap="round" opacity=".1"/><path d="${d(6)}" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".16"/>`;
+  }
+  return out;
+}
 
 const scallopRow = (x1: number, x2: number, y: number, r: number, fill: string, extra = '') => {
   const n = Math.max(2, Math.round((x2 - x1) / (r * 1.5)));
@@ -313,13 +344,15 @@ export const BOTTOMS: WearItem[] = [
          <path d="M127 446 L273 446" stroke="#18c5c0" stroke-width="8" stroke-linecap="round"/>` +
         vol('M150 372 L250 372 L276 462 L124 462 Z', uid) +
         waistband('#18c5c0'),
+      leg: hemShadow(456, uid),
     }),
   },
   {
     id: 'bot-tutu',
     slot: 'bottom',
     thumb: T_SKIRT,
-    parts: () => ({
+    parts: ({ uid }) => ({
+      leg: hemShadow(460, uid),
       hips:
         `<path d="M154 374 L246 374 L282 440 L118 440 Z" fill="#ff9fd0"/>` +
         tutuLayer(448, 86, 20, '#ff7fbf', 0.9) +
@@ -335,10 +368,11 @@ export const BOTTOMS: WearItem[] = [
     id: 'bot-petal',
     slot: 'bottom',
     thumb: T_SKIRT,
-    parts: () => {
+    parts: ({ uid }) => {
       const petal = (x: number, len: number, fill: string, lean: number) =>
         `<path d="M${x} 374 Q${x - 26 + lean} ${374 + len * 0.6} ${x + lean * 2} ${374 + len} Q${x + 26 + lean} ${374 + len * 0.6} ${x} 374 Z" fill="${fill}" stroke="${darken(fill, 0.12)}" stroke-width="2"/>`;
       return {
+        leg: hemShadow(452, uid),
         hips:
           [140, 170, 200, 230, 260].map((x, i) => petal(x, 104, i % 2 ? '#5fd38d' : '#8be0a8', (x - 200) / 5)).join('') +
           [155, 185, 215, 245].map((x, i) => petal(x, 80, i % 2 ? '#ff8ec7' : '#ffb3dc', (x - 200) / 6)).join('') +
@@ -398,7 +432,8 @@ export const BOTTOMS: WearItem[] = [
     id: 'bot-ruffle',
     slot: 'bottom',
     thumb: T_SKIRT,
-    parts: () => ({
+    parts: ({ uid }) => ({
+      leg: hemShadow(472, uid),
       hips: tier(436, 94, 34, '#a57bff') + tier(404, 82, 36, '#4db8ff') + tier(372, 68, 36, '#ff8ec7') + waistband('#ffd84a') + star(200, 374, 8, '#fff'),
     }),
   },
@@ -411,6 +446,7 @@ export const BOTTOMS: WearItem[] = [
       const v = [0.2, 0.4, 0.6, 0.8].map((t) => `M${150 + 100 * t} 374 L${126 + 148 * t} 458`).join(' ');
       return {
         defs: `<clipPath id="${uid}-pl"><path d="${d}"/></clipPath>`,
+        leg: hemShadow(452, uid),
         hips:
           `<path d="${d}" fill="#e8405f"/>
            <g clip-path="url(#${uid}-pl)"><path d="${v} M120 402 L280 402 M120 432 L280 432" fill="none" stroke="#2f3f8f" stroke-width="9" opacity=".75"/>
@@ -460,6 +496,7 @@ export const DRESSES: WearItem[] = [
         scallopRow(72, 328, 636, 15, '#ffc4e3') +
         `<path d="M162 350 Q118 470 96 566 Q160 536 200 430 Q240 536 304 566 Q282 470 238 350 Z" fill="#ffb6dc"/>` +
         vol('M162 350 Q200 338 238 350 Q320 470 342 628 Q300 650 250 638 Q200 654 150 638 Q100 650 58 628 Q80 470 162 350 Z', uid) +
+        folds([166, 234, 356], [74, 326, 628], 5) +
         sparkle(120, 590, 9, '#fff') +
         sparkle(200, 560, 11, '#fff') +
         sparkle(282, 594, 9, '#fff') +
@@ -480,10 +517,12 @@ export const DRESSES: WearItem[] = [
     slot: 'dress',
     thumb: [70, 235, 260, 290],
     parts: ({ uid }) => ({
+      leg: hemShadow(486, uid),
       hips:
         `<path d="M154 346 L246 346 L286 484 Q200 506 114 484 Z" fill="#ffd84a"/>
          <path d="M118 474 Q200 496 282 474" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>` +
         vol('M154 346 L246 346 L286 484 Q200 506 114 484 Z', uid) +
+        folds([158, 242, 350], [122, 278, 484], 4) +
         flower(160, 430, 13, '#fff', '#ff9f43') +
         flower(236, 420, 13, '#fff', '#ff9f43') +
         flower(200, 462, 11, '#fff', '#ff9f43') +
@@ -498,10 +537,11 @@ export const DRESSES: WearItem[] = [
     id: 'dr-fairy',
     slot: 'dress',
     thumb: [70, 235, 260, 290],
-    parts: () => {
+    parts: ({ uid }) => {
       const petal = (x: number, len: number, fill: string, lean: number) =>
         `<path d="M${x} 348 Q${x - 30 + lean} ${348 + len * 0.6} ${x + lean * 2.4} ${348 + len} Q${x + 30 + lean} ${348 + len * 0.6} ${x} 348 Z" fill="${fill}" stroke="${darken(fill, 0.1)}" stroke-width="2"/>`;
       return {
+        leg: hemShadow(470, uid),
         hips:
           [136, 168, 200, 232, 264].map((x, i) => petal(x, 150, i % 2 ? '#ff8ec7' : '#ffb3dc', (x - 200) / 4)).join('') +
           [152, 184, 216, 248].map((x, i) => petal(x, 112, i % 2 ? '#c59bff' : '#e0c8ff', (x - 200) / 5)).join(''),
@@ -519,7 +559,8 @@ export const DRESSES: WearItem[] = [
     id: 'dr-party',
     slot: 'dress',
     thumb: [70, 235, 260, 290],
-    parts: () => ({
+    parts: ({ uid }) => ({
+      leg: hemShadow(490, uid),
       hips: tier(440, 98, 46, '#7a45e0') + tier(396, 82, 46, '#9a5cf5') + tier(350, 64, 48, '#b98bff'),
       torso:
         `<path d="${teeBody(356)}" fill="#9a5cf5"/>
@@ -537,7 +578,7 @@ export const DRESSES: WearItem[] = [
     thumb: [60, 235, 280, 410],
     parts: ({ uid }) => ({
       defs: linearGradient(`${uid}-pp`, ['#ff2f8e', '#ff7a3c', '#ffd23c']),
-      leg: pantsLeg('#2a1f4a', 634) + sparkle(172, 500, 6, '#ff8ec7') + sparkle(182, 570, 5, '#8be9ff'),
+      leg: pantsLeg('#2a1f4a', 634) + sparkle(172, 500, 6, '#ff8ec7') + sparkle(182, 570, 5, '#8be9ff') + hemShadow(476, uid),
       hips:
         tutuLayer(468, 84, 18, '#27d3c3', 0.85) +
         `<path d="M154 348 L246 348 L280 462 L246 444 L224 468 L200 446 L176 468 L154 444 L120 462 Z" fill="url(#${uid}-pp)"/>` +
@@ -560,9 +601,11 @@ export const DRESSES: WearItem[] = [
       const skirt = 'M156 346 L244 346 L288 480 L112 480 Z';
       return {
         defs: `<clipPath id="${uid}-rb"><path d="${skirt}"/></clipPath>`,
+        leg: hemShadow(488, uid),
         hips:
           `<g clip-path="url(#${uid}-rb)">${RAINBOW.map((c, i) => `<rect x="100" y="${346 + i * 23}" width="200" height="24" fill="${c}"/>`).join('')}</g>` +
           vol(skirt, uid) +
+          folds([160, 240, 350], [120, 280, 478], 4) +
           scallopRow(118, 282, 482, 13, '#fff'),
         torso:
           `<path d="${teeBody(354)}" fill="#fff"/>
@@ -603,6 +646,7 @@ export const DRESSES: WearItem[] = [
       hips:
         `<path d="M158 350 Q200 340 242 350 Q286 480 298 632 Q250 652 200 644 Q150 652 102 632 Q114 480 158 350 Z" fill="url(#${uid}-nt)"/>` +
         vol('M158 350 Q200 340 242 350 Q286 480 298 632 Q250 652 200 644 Q150 652 102 632 Q114 480 158 350 Z', uid) +
+        folds([162, 238, 356], [114, 286, 630], 4) +
         star(150, 520, 9, '#ffd84a') +
         star(244, 470, 7, '#ffd84a') +
         star(214, 580, 10, '#ffd84a') +
@@ -624,8 +668,8 @@ export const DRESSES: WearItem[] = [
     id: 'dr-ballet',
     slot: 'dress',
     thumb: [50, 235, 300, 250],
-    parts: () => ({
-      leg: pantsLeg('#fff3f8', 640),
+    parts: ({ uid }) => ({
+      leg: pantsLeg('#fff3f8', 640) + hemShadow(416, uid),
       hips:
         `<ellipse cx="200" cy="398" rx="128" ry="26" fill="#ff9fd0" opacity=".85"/>` +
         tutuLayer(408, 122, 17, '#ffb3d9', 0.9) +
@@ -650,6 +694,7 @@ export const DRESSES: WearItem[] = [
     parts: ({ uid }) => {
       const d = 'M152 356 L248 356 L278 452 L122 452 Z';
       return {
+        leg: hemShadow(446, uid),
         hips:
           `<path d="${d}" fill="#3f7bf0"/>
            <path d="M176 366 L160 452 L186 452 Z M224 366 L214 452 L240 452 Z M200 366 L190 452 L210 452 Z" fill="#ffd84a"/>
@@ -674,6 +719,7 @@ export const DRESSES: WearItem[] = [
           `<path d="${d}" fill="url(#${uid}-oc)"/>
            <g clip-path="url(#${uid}-occ)">${scallopRow(110, 290, 452, 15, '#fff', 'opacity=".4"')}${scallopRow(104, 296, 532, 17, '#fff', 'opacity=".4"')}${scallopRow(100, 300, 606, 18, '#fff', 'opacity=".45"')}</g>` +
           vol(d, uid) +
+          folds([162, 238, 356], [112, 288, 630], 3) +
           scallopRow(112, 288, 636, 13, '#fff') +
           `<circle cx="170" cy="490" r="5" fill="#fff" opacity=".8"/><circle cx="236" cy="566" r="6" fill="#fff" opacity=".8"/><circle cx="214" cy="420" r="4" fill="#fff" opacity=".8"/>`,
         torso:
@@ -693,7 +739,7 @@ export const DRESSES: WearItem[] = [
     parts: ({ uid }) => {
       const d = 'M152 362 L248 362 L270 424 L252 414 L236 432 L218 414 L200 432 L182 414 L164 432 L148 414 L130 424 Z';
       return {
-        leg: pantsLeg('#5a2fb8', 634) + star(177, 510, 9, '#ffd84a'),
+        leg: pantsLeg('#5a2fb8', 634) + star(177, 560, 9, '#ffd84a') + hemShadow(418, uid),
         hips: `<path d="${d}" fill="#7a45e0"/>` + vol(d, uid),
         torso:
           `<path d="${teeBody(372)}" fill="#e8308f"/>

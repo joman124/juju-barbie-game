@@ -6,22 +6,24 @@ It is a web app: it runs in Safari, can be added to the home screen as a full-sc
 
 ## How to play
 
-No reading is needed.
+No reading is needed. The first time, a pointing hand shows what to tap at each step.
 
 1. **Tap the big green button** to start.
-2. **Pick a doll.** There are six: Sunny (sport), Coral (mermaid), Rosie (princess), Fern (fairy), Nova (astronaut) and Melody (pop star). Each arrives in her own outfit with her own pet.
-3. **Give her a makeover.** The six big buttons along the top are clothes, accessories, hair, makeup, nails and pets. Tap anything to put it on; tap it again to take it off. Any item works on any doll.
+2. **Pick a doll.** There are six: Sunny (sport), Coral (mermaid), Rosie (princess), Fern (fairy), Nova (astronaut) and Melody (pop star). Each has her own face, outfit, pet and runway.
+3. **Give her a makeover.** The picture buttons are everything you can change: tops, bottoms, dresses, shoes, hats, extras (jewellery, glasses, bags, wands, wings), hair, hair colour, makeup, cheeks, nails and pets. Tap a picture, then tap anything to put it on; tap it again to take it off. Any item works on any doll.
    - The magic wand button gives her a surprise look.
-   - The round arrow button puts her back in the outfit she arrived in.
-   - Makeup zooms in on her face and nails zoom in on her hand.
-4. **Tap the star button** for the fashion show. Tap anywhere during the show to throw hearts and stars.
-5. The finished look is saved to the **lookbook** (the book button). Tap a saved look to change it or watch its show again.
+   - The button with her face on it puts her back in the outfit she arrived in.
+   - Hair, hats and makeup zoom in on her face, and nails zoom in on her hand.
+4. **Tap the star button** for the fashion show. She walks the runway, the cameras zoom in on her face and her nails, and she does her own big move at the end. Tap anywhere to throw hearts and stars. When the show is over, tap her and she does more poses.
+5. **Tap the heart** to keep the photo in the **lookbook**. The heart then turns into the lookbook button. Tap a saved look to change it or watch its show again.
 
 There are no scores, timers, ads, purchases, accounts or links out of the game, and nothing is ever sent anywhere. Saved looks stay on the device.
 
 ### For grown-ups
 
 In the lookbook, open a look, then **press and hold the padlock for three seconds**. From there you can save the look as a picture (on an iPad this opens the share sheet, where you can choose Save Image) or delete it.
+
+Saved looks live in the browser's own storage on the iPad. If the game is played in a Safari tab, iOS can clear that storage after about a week without a visit; adding the game to the home screen avoids this.
 
 ## Put it on an iPad
 
@@ -75,7 +77,7 @@ src/
   dolls.ts           the six dolls and their starter looks
   screens/           title, doll picker, studio, fashion show, lookbook
   art/
-    doll.ts          the body rig and the fixed layer order
+    doll.ts          the body rig, faces and expressions, and the fixed layer order
     hair.ts          hair styles and colours
     clothes.ts       tops, bottoms, dresses, shoes
     accessories.ts   crowns, jewellery, glasses, bags, wands, wings
@@ -90,7 +92,11 @@ src/
 
 Every doll shares one body, so an item is drawn once and fits everyone. Add an entry to the right list in `src/art/clothes.ts` or `src/art/accessories.ts`. Each item says which parts of the doll it draws on (`torso`, `hips`, `leg`, `foot`, `armUpper`, `head` and so on); `src/art/doll.ts` stacks those parts in the right order. Left-side pieces such as sleeves, trouser legs and shoes are drawn once and mirrored.
 
-Open `/sheet.html?show=items` while `npm run dev` is running to see every item on one page. `?show=dolls`, `?show=hair` and `?show=mix` show the dolls, the hair styles and a set of mixed-up outfits.
+Headwear can ask for hair to be tucked out of its way with `tuck: 'top'` (a top knot under a crown) or `tuck: 'all'` (everything inside the space helmet).
+
+Open `/sheet.html?show=items` while `npm run dev` is running to see every item on one page. `?show=dolls`, `?show=hair` and `?show=mix` show the dolls, the hair styles and a set of mixed-up outfits, and `?show=faces` shows each doll's face and back view.
+
+To check for clashes, `?show=pairs&a=hair&b=accHead` draws every hairstyle with every piece of headwear. `a` and `b` can be `hair` or any wardrobe slot (`top`, `bottom`, `dress`, `shoes`, `accHead`, `accNeck`, `accFace`, `accHandL`, `accHandR`, `accBack`), and `box` sets the part of the doll to show.
 
 ### Testing
 
@@ -100,6 +106,6 @@ Open `/sheet.html?show=items` while `npm run dev` is running to see every item o
 node scripts/play.cjs tour landscape
 ```
 
-Other scenarios are `starters` (every doll through the whole show), `surprise` (random looks), `hint` (the idle pointing hand) and `gate` (the grown-up lock, saving and deleting). Add `portrait` for the upright layout.
+Other scenarios are `starters` (every doll through the whole show), `surprise` (random looks), `hint` (the idle pointing hand) and `gate` (the heart, the grown-up lock, saving and deleting). Add `portrait` for the upright layout, and put `LESSON=0` in front to skip the first-time walkthrough.
 
 `node scripts/make-icons.cjs` regenerates the app icons in `public/icons`.

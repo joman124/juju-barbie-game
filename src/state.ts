@@ -34,6 +34,10 @@ function write(key: string, value: unknown): void {
   }
 }
 
+/** Small remembered facts, e.g. that the first-time walkthrough has been seen. */
+export const hasFlag = (name: string) => read<boolean>(`jfs.flag.${name}`, false);
+export const setFlag = (name: string) => write(`jfs.flag.${name}`, true);
+
 export const loadMuted = () => read<boolean>(MUTE_KEY, false);
 export const storeMuted = (m: boolean) => write(MUTE_KEY, m);
 
@@ -69,15 +73,28 @@ export function sameLook(a: Look, b: Look): boolean {
   return LOOK_KEYS.every((k) => (a[k] ?? '') === (b[k] ?? ''));
 }
 
-/** Adds a look to the lookbook (newest first). The same look twice in a row is kept once. */
+/**
+ * Adds a look to the lookbook (newest first). A look that is already in the
+ * book is moved to the front instead of being saved twice.
+ */
 export function saveLook(look: Look): SavedLook {
   const list = loadLooks();
-  if (list[0] && sameLook(list[0].look, look)) return list[0];
-  const saved: SavedLook = { id: `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`, at: Date.now(), look: { ...look } };
+  const at = list.findIndex((s) => sameLook(s.look, look));
+  let saved: SavedLook;
+  if (at >= 0) {
+    saved = { ...list[at], at: Date.now() };
+    list.splice(at, 1);
+  } else {
+    saved = { id: `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`, at: Date.now(), look: { ...look } };
+  }
   list.unshift(saved);
   write(LOOKS_KEY, list.slice(0, MAX_LOOKS));
+  // Ask the browser to keep saved looks even if the device runs low on space.
+  void navigator.storage?.persist?.().catch(() => undefined);
   return saved;
 }
+
+export const isSaved = (look: Look) => loadLooks().some((s) => sameLook(s.look, look));
 
 export function deleteLook(id: string): void {
   write(

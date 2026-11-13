@@ -1,4 +1,4 @@
-import type { Look, WearItem } from '../types';
+import type { Expression, Look, WearItem } from '../types';
 import { btn, muteAction, muteButton, routes, html, type Screen } from '../app';
 import { audio } from '../audio';
 import { fx } from '../fx';
@@ -13,7 +13,7 @@ import { handSvg, patternIcon, polishIcon } from '../art/hand';
 import { PETS, petSvg } from '../art/pets';
 import { nextUid } from '../art/svg';
 import { dollById } from '../dolls';
-import { choose, randomLook, sameLook, type Memory } from '../state';
+import { choose, hasFlag, randomLook, sameLook, setFlag, type Memory } from '../state';
 
 type View = 'full' | 'bust' | 'face' | 'hands';
 
@@ -22,19 +22,20 @@ interface Opt {
   slot: keyof Look;
   thumb: (look: Look) => string;
 }
-interface Sub {
+
+/**
+ * One kind of thing to change. Every category is a single picture button in
+ * one row: there are no sub-menus, so any category is one tap away.
+ */
+interface Category {
   id: string;
+  /** Picture on the category button. */
   icon: (look: Look) => string;
-  opts: Opt[];
-  /** Thumbnails depend on the current look, so redraw them every time. */
-  live?: boolean;
-}
-interface Tab {
-  id: string;
-  icon: string;
   view: View;
   color: string;
-  subs: Sub[];
+  opts: Opt[];
+  /** Thumbnails or the button picture depend on the current look. */
+  live?: boolean;
 }
 
 const thumbCache = new Map<string, string>();
@@ -49,7 +50,7 @@ const cached = (key: string, make: () => string) => {
 
 const wear = (items: WearItem[]): Opt[] => items.map((it) => ({ id: it.id, slot: it.slot, thumb: () => cached(it.id, () => itemThumb(it)) }));
 
-/** Garment on its own (no dress form), used as a sub-tab icon. */
+/** Garment on its own (no dress form), used as a category picture. */
 function bareIcon(it: WearItem): string {
   return cached(`bare-${it.id}`, () => {
     const uid = nextUid();
@@ -87,90 +88,70 @@ const shadowThumb = (s: Swatch) =>
 const blushThumb = (s: Swatch) =>
   swatchIcon(`<circle cx="50" cy="52" r="38" fill="${s.color}" opacity=".35"/><circle cx="50" cy="52" r="27" fill="${s.color}" opacity=".7"/><circle cx="40" cy="42" r="7" fill="#fff" opacity=".55"/>`);
 
-const TABS: Tab[] = [
-  {
-    id: 'clothes',
-    icon: ICONS.clothes,
-    view: 'full',
-    color: '#ff6fb1',
-    subs: [
-      { id: 'top', icon: () => bareIcon(TOPS[0]), opts: wear(TOPS) },
-      { id: 'bottom', icon: () => bareIcon(BOTTOMS[5]), opts: wear(BOTTOMS) },
-      { id: 'dress', icon: () => bareIcon(DRESSES[0]), opts: wear(DRESSES) },
-      { id: 'shoes', icon: () => bareIcon(SHOES[0]), opts: wear(SHOES) },
-    ],
-  },
-  {
-    id: 'acc',
-    icon: ICONS.crown,
-    view: 'full',
-    color: '#ffb020',
-    subs: [
-      { id: 'head', icon: () => bareIcon(HEAD_ACC[1]), opts: wear(HEAD_ACC) },
-      { id: 'bling', icon: () => bareIcon(BLING_ACC[4]), opts: wear(BLING_ACC) },
-      { id: 'carry', icon: () => bareIcon(CARRY_ACC[0]), opts: wear(CARRY_ACC) },
-    ],
-  },
+const PINK = '#ff6fb1';
+const GOLD = '#ffb020';
+const PURPLE = '#9a6bff';
+const RED = '#ff4f7a';
+const TEAL = '#18c5c0';
+const GREEN = '#5fc96a';
+
+const CATEGORIES: Category[] = [
+  { id: 'tops', icon: () => bareIcon(TOPS[0]), view: 'full', color: PINK, opts: wear(TOPS) },
+  { id: 'bottoms', icon: () => bareIcon(BOTTOMS[5]), view: 'full', color: PINK, opts: wear(BOTTOMS) },
+  { id: 'dresses', icon: () => bareIcon(DRESSES[0]), view: 'full', color: PINK, opts: wear(DRESSES) },
+  { id: 'shoes', icon: () => bareIcon(SHOES[0]), view: 'full', color: PINK, opts: wear(SHOES) },
+  { id: 'hats', icon: () => bareIcon(HEAD_ACC[1]), view: 'bust', color: GOLD, opts: wear(HEAD_ACC) },
+  { id: 'extras', icon: () => bareIcon(CARRY_ACC[0]), view: 'full', color: GOLD, opts: wear([...BLING_ACC, ...CARRY_ACC]) },
   {
     id: 'hair',
-    icon: ICONS.hair,
+    live: true,
+    icon: (look) => headThumb(look, look.hair),
     view: 'bust',
-    color: '#9a6bff',
-    subs: [
-      {
-        id: 'style',
-        live: true,
-        icon: (look) => headThumb({ ...look, hairColor: look.hairColor }, look.hair),
-        opts: HAIR_STYLES.map((s) => ({ id: s.id, slot: 'hair' as const, thumb: (look: Look) => headThumb(look, s.id) })),
-      },
-      {
-        id: 'color',
-        icon: () => swatchIcon(hairSwatch(HAIR_COLORS[HAIR_COLORS.length - 1], 'tabsw')),
-        opts: HAIR_COLORS.map((c) => ({ id: c.id, slot: 'hairColor' as const, thumb: () => swatchIcon(hairSwatch(c, `sw${c.id}`)) })),
-      },
-    ],
+    color: PURPLE,
+    opts: HAIR_STYLES.map((s) => ({ id: s.id, slot: 'hair' as const, thumb: (look: Look) => headThumb(look, s.id) })),
+  },
+  {
+    id: 'haircolor',
+    icon: () => swatchIcon(hairSwatch(HAIR_COLORS[HAIR_COLORS.length - 1], 'tabsw')),
+    view: 'bust',
+    color: PURPLE,
+    opts: HAIR_COLORS.map((c) => ({ id: c.id, slot: 'hairColor' as const, thumb: () => swatchIcon(hairSwatch(c, `sw${c.id}`)) })),
   },
   {
     id: 'makeup',
-    icon: ICONS.makeup,
+    icon: () => lipThumb(LIPS[2]),
     view: 'face',
-    color: '#ff4f7a',
-    subs: [
-      { id: 'lips', icon: () => ICONS.lips, opts: LIPS.map((s) => ({ id: s.id, slot: 'lips' as const, thumb: () => lipThumb(s) })) },
-      { id: 'eyes', icon: () => ICONS.eye, opts: SHADOWS.map((s) => ({ id: s.id, slot: 'shadow' as const, thumb: () => shadowThumb(s) })) },
-      {
-        id: 'cheeks',
-        icon: () => ICONS.cheek,
-        opts: [
-          ...BLUSHES.map((s) => ({ id: s.id, slot: 'blush' as const, thumb: () => blushThumb(s) })),
-          ...FACE_ART.map((a) => ({ id: a.id, slot: 'faceArt' as const, thumb: () => swatchIcon(a.icon()) })),
-        ],
-      },
+    color: RED,
+    opts: [
+      ...LIPS.map((s) => ({ id: s.id, slot: 'lips' as const, thumb: () => lipThumb(s) })),
+      ...SHADOWS.map((s) => ({ id: s.id, slot: 'shadow' as const, thumb: () => shadowThumb(s) })),
+    ],
+  },
+  {
+    id: 'cheeks',
+    icon: () => swatchIcon(FACE_ART[0].icon()),
+    view: 'face',
+    color: RED,
+    opts: [
+      ...BLUSHES.map((s) => ({ id: s.id, slot: 'blush' as const, thumb: () => blushThumb(s) })),
+      ...FACE_ART.map((a) => ({ id: a.id, slot: 'faceArt' as const, thumb: () => swatchIcon(a.icon()) })),
     ],
   },
   {
     id: 'nails',
-    icon: ICONS.nails,
+    live: true,
+    icon: () => polishIcon(NAIL_COLORS[0]),
     view: 'hands',
-    color: '#18c5c0',
-    subs: [
-      { id: 'polish', icon: () => polishIcon(NAIL_COLORS[0]), opts: NAIL_COLORS.map((s) => ({ id: s.id, slot: 'nailColor' as const, thumb: () => polishIcon(s) })) },
-      {
-        id: 'pattern',
-        live: true,
-        icon: () => patternIcon('np-hearts', NAIL_COLORS[2]),
-        opts: NAIL_PATTERNS.map((p) => ({ id: p, slot: 'nailPattern' as const, thumb: (look: Look) => patternIcon(p, byId(NAIL_COLORS, look.nailColor)) })),
-      },
+    color: TEAL,
+    opts: [
+      ...NAIL_COLORS.map((s) => ({ id: s.id, slot: 'nailColor' as const, thumb: () => polishIcon(s) })),
+      ...NAIL_PATTERNS.map((p) => ({ id: p, slot: 'nailPattern' as const, thumb: (look: Look) => patternIcon(p, byId(NAIL_COLORS, look.nailColor)) })),
     ],
   },
-  {
-    id: 'pets',
-    icon: ICONS.pets,
-    view: 'full',
-    color: '#5fc96a',
-    subs: [{ id: 'pets', icon: () => '', opts: PETS.map((p) => ({ id: p.id, slot: 'pet' as const, thumb: () => petSvg(p.id) })) }],
-  },
+  { id: 'pets', icon: () => petSvg('pet-kitty'), view: 'full', color: GREEN, opts: PETS.map((p) => ({ id: p.id, slot: 'pet' as const, thumb: () => petSvg(p.id) })) },
 ];
+
+const HAIR_CAT = CATEGORIES.findIndex((c) => c.id === 'hair');
 
 /** Roughly where on the doll (0-1 across, 0-1 down) each slot sits, for sparkles. */
 const SPARK_AT: Partial<Record<keyof Look, [number, number]>> = {
@@ -178,23 +159,30 @@ const SPARK_AT: Partial<Record<keyof Look, [number, number]>> = {
   bottom: [0.5, 0.66],
   dress: [0.5, 0.58],
   shoes: [0.5, 0.93],
-  accHead: [0.5, 0.12],
   accNeck: [0.5, 0.4],
   accFace: [0.5, 0.27],
   accHandL: [0.28, 0.62],
   accHandR: [0.74, 0.52],
   accBack: [0.5, 0.42],
-  hair: [0.5, 0.2],
-  hairColor: [0.5, 0.2],
 };
+
+const HAPPY: Partial<Record<keyof Look, Expression>> = { lips: 'kiss', shadow: 'wink', pet: 'wow' };
 
 export function studioScreen(initial: Look): Screen {
   let look: Look = { ...initial };
   const doll = dollById(look.doll);
   const mem: Memory = {};
-  let tab = 0;
-  const subIndex = TABS.map(() => 0);
+  let cat = 0;
   let changes = 0;
+  const visited = new Set<number>([0]);
+  let exTimer = 0;
+
+  /**
+   * First visit only: the pointing hand walks the child through one whole
+   * makeover. Step 0 try something on, 1 pick another category, 2 try
+   * something on there, 3 start the show. Any matching tap moves it along.
+   */
+  let lesson = hasFlag('lesson') ? -1 : 0;
 
   const root = html(`
     <div class="studio" style="--c1:${doll.color};--c2:${doll.color2}">
@@ -207,14 +195,15 @@ export function studioScreen(initial: Look): Screen {
         <div class="corner corner-tl">${btn('back', ICONS.back, 'btn-small btn-ghost', '', 'Back')}</div>
         <div class="corner corner-tr">${muteButton()}</div>
         <div class="stage-bar">
-          ${btn('reset', ICONS.reset, 'btn-small btn-blue', '', 'Start again')}
+          <button type="button" class="btn btn-small btn-blue btn-reset" data-act="reset" aria-label="Back to how she started">
+            <span class="reset-face">${headThumb(doll.starter, doll.starter.hair)}</span><span class="reset-badge">${ICONS.reset}</span>
+          </button>
           ${btn('surprise', ICONS.surprise, 'btn-mid btn-purple', '', 'Surprise me')}
           ${btn('show', ICONS.show, 'btn-big btn-show pulse', '', 'Fashion show')}
         </div>
       </div>
       <div class="panel">
-        <div class="tabs"></div>
-        <div class="subtabs"></div>
+        <div class="rail"></div>
         <div class="grid"></div>
       </div>
     </div>`);
@@ -225,12 +214,10 @@ export function studioScreen(initial: Look): Screen {
   const dollZoom = $('.doll-zoom');
   const petWrap = $('.pet-wrap');
   const handWrap = $('.hand-wrap');
-  const tabsEl = $('.tabs');
-  const subsEl = $('.subtabs');
+  const railEl = $('.rail');
   const gridEl = $('.grid');
 
-  const curTab = () => TABS[tab];
-  const curSub = () => curTab().subs[subIndex[tab]];
+  const cur = () => CATEGORIES[cat];
 
   function drawDoll(): void {
     dollZoom.innerHTML = dollSvg(look);
@@ -243,45 +230,47 @@ export function studioScreen(initial: Look): Screen {
     handWrap.innerHTML = handSvg(doll.skin, look.nailColor, look.nailPattern);
   }
 
-  function drawTabs(): void {
-    tabsEl.innerHTML = TABS.map(
-      (t, i) => `<button type="button" class="tab ${i === tab ? 'on' : ''}" data-act="tab" data-arg="${i}" style="--tc:${t.color}" aria-label="${t.id}">${t.icon}</button>`,
+  function drawRail(): void {
+    railEl.innerHTML = CATEGORIES.map(
+      (c, i) =>
+        `<button type="button" class="cat ${i === cat ? 'on' : ''}" data-act="cat" data-arg="${i}" style="--tc:${c.color}" aria-label="${c.id}" aria-pressed="${i === cat}">${c.icon(look)}</button>`,
     ).join('');
-    const subs = curTab().subs;
-    subsEl.style.setProperty('--tc', curTab().color);
-    subsEl.classList.toggle('empty', subs.length < 2);
-    subsEl.innerHTML =
-      subs.length < 2
-        ? ''
-        : subs.map((s, i) => `<button type="button" class="subtab ${i === subIndex[tab] ? 'on' : ''}" data-act="sub" data-arg="${i}" aria-label="${s.id}">${s.icon(look)}</button>`).join('');
+  }
+  function markRail(): void {
+    railEl.querySelectorAll<HTMLElement>('.cat').forEach((el, i) => {
+      el.classList.toggle('on', i === cat);
+      el.setAttribute('aria-pressed', String(i === cat));
+      if (CATEGORIES[i].live && CATEGORIES[i].id === 'hair') el.innerHTML = CATEGORIES[i].icon(look);
+    });
   }
 
   function drawGrid(animate = false): void {
-    const sub = curSub();
-    gridEl.style.setProperty('--tc', curTab().color);
+    const c = cur();
+    gridEl.style.setProperty('--tc', c.color);
+    gridEl.dataset.n = String(c.opts.length);
     gridEl.classList.toggle('pop-in', animate);
-    gridEl.innerHTML = sub.opts
+    gridEl.innerHTML = c.opts
       .map((o, i) => {
         const on = look[o.slot] === o.id;
-        return `<button type="button" class="tile ${on ? 'on' : ''}" data-act="opt" data-arg="${i}" style="animation-delay:${i * 28}ms" aria-label="${o.id}" aria-pressed="${on}">${o.thumb(look)}<span class="tick">${ICONS.check}</span></button>`;
+        return `<button type="button" class="tile ${on ? 'on' : ''}" data-act="opt" data-arg="${i}" style="animation-delay:${i * 22}ms" aria-label="${o.id}" aria-pressed="${on}">${o.thumb(look)}<span class="tick">${ICONS.check}</span></button>`;
       })
       .join('');
   }
 
   function markTiles(): void {
-    const sub = curSub();
-    if (sub.live) return drawGrid();
+    const c = cur();
+    if (c.live) return drawGrid();
     gridEl.querySelectorAll<HTMLElement>('.tile').forEach((el, i) => {
-      const o = sub.opts[i];
+      const o = c.opts[i];
       const on = !!o && look[o.slot] === o.id;
       el.classList.toggle('on', on);
       el.setAttribute('aria-pressed', String(on));
     });
   }
 
-  /** Zooms the doll for hair and makeup, and swaps to the hand for nails. */
+  /** Zooms the doll for hair, hats and makeup, and swaps to the hand for nails. */
   function applyView(): void {
-    const view = curTab().view;
+    const view = cur().view;
     stage.dataset.view = view;
     const w = dollWrap.clientWidth;
     const h = dollWrap.clientHeight;
@@ -295,13 +284,24 @@ export function studioScreen(initial: Look): Screen {
     dollZoom.style.transform = view === 'face' || view === 'bust' ? `translateY(${h * (view === 'face' ? 0.52 : 0.46) - fy}px) scale(${scale})` : 'none';
   }
 
+  /** A quick change of expression, then back to her usual smile. */
+  function feel(ex: Expression, ms = 850): void {
+    window.clearTimeout(exTimer);
+    dollWrap.dataset.ex = ex;
+    exTimer = window.setTimeout(() => delete dollWrap.dataset.ex, ms);
+  }
+
+  function hop(el: HTMLElement): void {
+    el.classList.remove('react');
+    void el.offsetWidth;
+    el.classList.add('react');
+  }
+
   function react(slot?: keyof Look): void {
-    dollWrap.classList.remove('react');
-    void dollWrap.offsetWidth;
-    dollWrap.classList.add('react');
-    const view = curTab().view;
+    hop(dollWrap);
+    const view = cur().view;
     const r = (view === 'hands' ? handWrap : dollWrap).getBoundingClientRect();
-    if (view === 'face' || view === 'bust' || view === 'hands') {
+    if (view !== 'full') {
       fx.twinkle(r.left + r.width / 2, r.top + r.height * 0.45, 12, r.width * 0.3);
       return;
     }
@@ -322,9 +322,7 @@ export function studioScreen(initial: Look): Screen {
     drawDoll();
     if (petChanged) {
       drawPet();
-      petWrap.classList.remove('react');
-      void petWrap.offsetWidth;
-      petWrap.classList.add('react');
+      hop(petWrap);
     }
     drawHand();
     react(slot);
@@ -335,44 +333,41 @@ export function studioScreen(initial: Look): Screen {
   drawDoll();
   drawPet();
   drawHand();
-  drawTabs();
+  drawRail();
   drawGrid(true);
 
   return {
     root,
     actions: {
-      tab: (arg) => {
+      cat: (arg) => {
         const i = Number(arg);
-        if (i === tab) return;
-        tab = i;
+        if (i === cat) return;
+        cat = i;
+        visited.add(i);
+        if (lesson === 1) lesson = 2;
         audio.sfx('tab');
-        drawTabs();
+        markRail();
         drawGrid(true);
         applyView();
       },
-      sub: (arg) => {
-        const i = Number(arg);
-        if (i === subIndex[tab]) return;
-        subIndex[tab] = i;
-        audio.sfx('tab');
-        drawTabs();
-        drawGrid(true);
-      },
       opt: (arg, el) => {
-        const o = curSub().opts[Number(arg)];
+        const o = cur().opts[Number(arg)];
         if (!o) return;
         const res = choose(look, o.slot, o.id, mem);
         changes++;
+        if (lesson === 0) lesson = 1;
+        else if (lesson === 2) lesson = 3;
         audio.sfx(res.on ? (o.slot === 'pet' ? 'pet' : 'select') : 'remove');
         setLook(res.look, o.slot);
+        if (res.on) feel(HAPPY[o.slot] ?? 'grin');
         markTiles();
-        const tile = curSub().live ? (gridEl.children[Number(arg)] as HTMLElement | undefined) : el;
+        markRail();
+        const tile = cur().live ? (gridEl.children[Number(arg)] as HTMLElement | undefined) : el;
         if (tile) {
           tile.classList.remove('bump');
           void tile.offsetWidth;
           tile.classList.add('bump');
         }
-        if (curTab().id === 'hair') drawTabs();
       },
       surprise: () => {
         audio.sfx('magic');
@@ -380,8 +375,9 @@ export function studioScreen(initial: Look): Screen {
         let next = randomLook(look.doll);
         if (sameLook(next, look)) next = randomLook(look.doll);
         setLook(next);
+        feel('wow', 1100);
         drawPet();
-        drawTabs();
+        markRail();
         drawGrid();
         const r = dollWrap.getBoundingClientRect();
         fx.twinkle(r.left + r.width / 2, r.top + r.height / 2, 26, r.width * 0.4);
@@ -390,11 +386,12 @@ export function studioScreen(initial: Look): Screen {
         audio.sfx('whoosh');
         setLook({ ...doll.starter });
         drawPet();
-        drawTabs();
+        markRail();
         drawGrid();
       },
       show: () => {
         audio.sfx('sparkle');
+        if (lesson >= 0) setFlag('lesson');
         routes.show(look, 'studio');
       },
       back: () => {
@@ -407,20 +404,35 @@ export function studioScreen(initial: Look): Screen {
       fx.twinkle(x, y, 7, 26);
       audio.pop();
       const r = stage.getBoundingClientRect();
-      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
-        // Tickle the doll (or her pet) and she hops.
-        const target = curTab().view === 'full' && petWrap.getBoundingClientRect().left < x && petWrap.getBoundingClientRect().top < y ? petWrap : dollWrap;
-        target.classList.remove('react');
-        void target.offsetWidth;
-        target.classList.add('react');
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
+      // Tickle the doll (or her pet) and she reacts.
+      const pr = petWrap.getBoundingClientRect();
+      if (cur().view === 'full' && x > pr.left && y > pr.top && y < pr.bottom) hop(petWrap);
+      else {
+        hop(dollWrap);
+        feel(Math.random() < 0.5 ? 'wink' : 'grin');
       }
     },
-    hintTarget: () => (changes === 0 ? gridEl.querySelector('.tile:not(.on)') : root.querySelector('.btn-show')),
+    hintTarget: () => {
+      const tile = () => gridEl.querySelector('.tile:not(.on)');
+      const star = () => root.querySelector('.btn-show');
+      if (lesson === 0 || lesson === 2) return tile();
+      if (lesson === 1) return railEl.children[HAIR_CAT === cat ? 0 : HAIR_CAT] ?? null;
+      if (lesson === 3) return star();
+      // After the lesson: nudge toward whatever has not been tried yet.
+      if (changes === 0) return tile();
+      if (visited.size < 3) return Array.from(railEl.children).find((_, i) => !visited.has(i)) ?? null;
+      return star();
+    },
+    hintDelay: () => (lesson >= 0 ? 1100 : 6000),
     onShow: () => {
       audio.music('studio');
       window.addEventListener('resize', onResize);
       requestAnimationFrame(applyView);
     },
-    onHide: () => window.removeEventListener('resize', onResize),
+    onHide: () => {
+      window.clearTimeout(exTimer);
+      window.removeEventListener('resize', onResize);
+    },
   };
 }

@@ -229,6 +229,24 @@ export const HAIR_STYLES: HairStyle[] = [
   },
 ];
 
+/** Styles whose hair sits on the crown of the head: a crown, bow or cap needs it out of the way. */
+const TOP_HEAVY = new Set(['topknot']);
+/** Styles that already fit inside a space helmet as they are. */
+const FITS_HELMET = new Set(['pixie']);
+
+/**
+ * The same style with hair tucked away for headwear that needs the room.
+ * 'top' flattens a top knot; 'all' leaves just a neat cap of hair and the fringe.
+ */
+export function tuckedHair(style: HairStyle, tuck: 'top' | 'all' | undefined): HairStyle {
+  if (!tuck) return style;
+  if (tuck === 'top') return TOP_HEAVY.has(style.id) ? { ...style, back: CAP, front: SWOOP } : style;
+  if (FITS_HELMET.has(style.id)) return style;
+  if (style.id === 'afro') return { ...style, back: (h) => scallopCircle(200, 128, 104, 16, h.fill, 0.3) };
+  const fringe: Record<string, (h: HairPaint) => string> = { braids: PART, topknot: SWOOP, buns: FRINGE, bob: FRINGE };
+  return { ...style, back: CAP, front: fringe[style.id] ?? style.front };
+}
+
 export const hairStyleById = (id: string) => HAIR_STYLES.find((s) => s.id === id) ?? HAIR_STYLES[0];
 export const hairColorById = (id: string) => HAIR_COLORS.find((c) => c.id === id) ?? HAIR_COLORS[0];
 

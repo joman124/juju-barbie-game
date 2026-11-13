@@ -5,6 +5,7 @@ import { ICONS } from '../art/icons';
 import { dollSvg } from '../art/doll';
 import { petSvg } from '../art/pets';
 import { DOLLS } from '../dolls';
+import { hasFlag } from '../state';
 
 export function pickScreen(): Screen {
   const root = html(`
@@ -45,6 +46,8 @@ export function pickScreen(): Screen {
       mute: muteAction,
     },
     hintTarget: () => root.querySelector('.card'),
+    // a brand-new player gets pointed in the right direction straight away
+    hintDelay: () => (hasFlag('lesson') ? 6000 : 1800),
     onShow: () => audio.music('studio'),
   };
 }

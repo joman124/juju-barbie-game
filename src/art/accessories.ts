@@ -23,6 +23,7 @@ export const HEAD_ACC: WearItem[] = [
   {
     id: 'hd-crown',
     slot: 'accHead',
+    tuck: 'top',
     thumb: T_HEAD,
     parts: () => ({
       head:
@@ -35,6 +36,7 @@ export const HEAD_ACC: WearItem[] = [
   {
     id: 'hd-bow',
     slot: 'accHead',
+    tuck: 'top',
     thumb: T_HEAD,
     parts: () => ({
       head:
@@ -74,11 +76,13 @@ export const HEAD_ACC: WearItem[] = [
   {
     id: 'hd-cap',
     slot: 'accHead',
+    tuck: 'top',
     thumb: T_HEAD,
     parts: () => ({
       head:
         `<path d="M106 112 C104 52 152 26 200 26 C248 26 296 52 294 112 Q200 88 106 112 Z" fill="#18c5c0"/>
          <path d="M200 28 L200 96 M156 38 Q150 70 150 100 M244 38 Q250 70 250 100" stroke="#0fa5a3" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <path d="M120 122 Q200 106 280 122 L280 142 Q200 124 120 142 Z" fill="#4a1040" opacity=".16"/>
          <path d="M104 110 Q200 82 296 110 Q300 132 262 130 Q200 112 138 130 Q100 132 104 110 Z" fill="#ff6fb1"/>
          <circle cx="200" cy="26" r="7" fill="#ff6fb1"/>` + star(200, 68, 14, '#fff'),
     }),
@@ -110,6 +114,7 @@ export const HEAD_ACC: WearItem[] = [
   {
     id: 'hd-helmet',
     slot: 'accHead',
+    tuck: 'all',
     thumb: [50, -20, 300, 300],
     parts: () => ({
       over:

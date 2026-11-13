@@ -21,8 +21,7 @@ export function lookPictureSvg(look: Look, opts: { audience?: boolean; cls?: str
   const glints = sparkle(300, 90, 22, '#fff') + sparkle(900, 150, 16, '#fff') + sparkle(880, 420, 14, '#fff', 'opacity=".9"') + sparkle(320, 470, 12, '#fff', 'opacity=".9"');
   return `<svg xmlns="http://www.w3.org/2000/svg" class="${opts.cls ?? ''}" viewBox="240 0 ${PHOTO_W} ${PHOTO_H}" preserveAspectRatio="xMidYMid slice">
     ${sceneMarkup(d.theme, uid, opts.audience ?? false)}
-    <ellipse cx="600" cy="866" rx="150" ry="22" fill="#000" opacity=".16"/>
-    <svg x="${600 - dw / 2}" y="${868 - dh}" width="${dw}" height="${dh}" viewBox="${DOLL_VIEWBOX}">${dollMarkup(look, `${uid}d`)}</svg>
+    <svg x="${600 - dw / 2}" y="${868 - dh}" width="${dw}" height="${dh}" viewBox="${DOLL_VIEWBOX}">${dollMarkup(look, `${uid}d`, { ground: true })}</svg>
     ${petArt}${glints}
   </svg>`;
 }

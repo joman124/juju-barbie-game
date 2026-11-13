@@ -63,6 +63,12 @@ export interface WearItem {
   thumb: [number, number, number, number];
   /** True for a mermaid tail: legs and shoes are hidden. */
   tail?: boolean;
+  /**
+   * Headwear only: how much hair has to be tucked away so it does not poke
+   * through. 'top' hides buns and knots on the crown of the head; 'all' leaves
+   * only a short cap of hair (for the space helmet).
+   */
+  tuck?: 'top' | 'all';
 }
 
 export interface HairColor {
@@ -99,12 +105,28 @@ export interface Look {
 
 export type Theme = 'stadium' | 'ocean' | 'castle' | 'forest' | 'space' | 'concert';
 
+/** What makes each doll's face her own. */
+export interface FaceTraits {
+  /** Eye size (rx, ry), tilt in degrees (outer corner up) and half the distance between the eyes. */
+  eye: { rx: number; ry: number; tilt: number; gap: number };
+  lashes: 'flick' | 'long' | 'wing' | 'soft';
+  brow: 'soft' | 'arched' | 'straight';
+  mouth: 'smile' | 'heart' | 'wide';
+  freckles?: boolean;
+  mole?: boolean;
+  dimples?: boolean;
+  ears?: 'round' | 'pointy';
+}
+
+export type Expression = 'smile' | 'grin' | 'wink' | 'wow' | 'kiss';
+
 export interface DollDef {
   id: string;
   name: string;
   skin: string;
   eyes: string;
   brows: string;
+  face: FaceTraits;
   theme: Theme;
   /** Card / accent colours. */
   color: string;
